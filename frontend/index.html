@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StayHub | Gestión de Alojamientos</title>
+    <meta
+      name="description"
+      content="Interfaz básica de StayHub para visualizar propiedades, reservas y estado del sistema."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="backdrop backdrop-a"></div>
+    <div class="backdrop backdrop-b"></div>
+
+    <main class="shell">
+      <header class="hero reveal">
+        <div class="brand-row">
+          <div class="brand-mark" aria-hidden="true">SH</div>
+          <div>
+            <p class="eyebrow">StayHub</p>
+            <h1>Gestión académica de alojamientos</h1>
+          </div>
+        </div>
+
+        <p class="hero-copy">
+          Una base visual para el proyecto: propiedades, reservas y administración
+          de la plataforma con una interfaz limpia, clara y fácil de extender.
+        </p>
+
+        <div class="hero-actions">
+          <a class="button button-primary" href="http://localhost:8000/docs" target="_blank" rel="noreferrer">
+            Abrir Swagger
+          </a>
+          <a class="button button-secondary" href="http://localhost:8000/health" target="_blank" rel="noreferrer">
+            Ver health
+          </a>
+        </div>
+
+        <section class="stats-grid" aria-label="Resumen del sistema">
+          <article class="stat-card">
+            <span class="stat-label">API</span>
+            <strong>FastAPI</strong>
+            <p>Documentación automática y endpoints REST.</p>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">DB</span>
+            <strong>PostgreSQL + PostGIS</strong>
+            <p>Base principal del proyecto académico.</p>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Estado</span>
+            <strong>Frontend base</strong>
+            <p>Listo para integrar datos reales más adelante.</p>
+          </article>
+        </section>
+      </header>
+
+      <section class="panel reveal" style="--delay: 120ms">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Flujo</p>
+            <h2>Cómo está pensado el sistema</h2>
+          </div>
+          <span class="chip">Backend + DB + Frontend</span>
+        </div>
+
+        <div class="flow-grid">
+          <article class="flow-card">
+            <span class="flow-index">01</span>
+            <h3>Base de datos</h3>
+            <p>
+              El modelo principal se implementa en PostgreSQL con tablas, índices
+              y transacciones definidas por tu parte.
+            </p>
+          </article>
+          <article class="flow-card">
+            <span class="flow-index">02</span>
+            <h3>Backend</h3>
+            <p>
+              FastAPI expone los recursos del dominio con una capa delgada sobre
+              SQLAlchemy.
+            </p>
+          </article>
+          <article class="flow-card">
+            <span class="flow-index">03</span>
+            <h3>Frontend</h3>
+            <p>
+              Esta interfaz sirve como punto de partida para consumir la API cuando
+              el flujo completo esté listo.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel split reveal" style="--delay: 220ms">
+        <div>
+          <p class="eyebrow">Recursos</p>
+          <h2>Endpoints principales</h2>
+          <div class="endpoint-list" id="endpoint-list"></div>
+        </div>
+
+        <aside class="console-card">
+          <p class="eyebrow">Vista previa</p>
+          <h2>Panel de control</h2>
+          <pre><code>GET /health
+GET /usuarios
+GET /propiedades
+GET /reservas</code></pre>
+          <p class="console-note">
+            Cuando la base de datos esté finalizada, este frontend podrá conectarse
+            a la API y mostrar datos reales.
+          </p>
+        </aside>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
