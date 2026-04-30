@@ -1,0 +1,34 @@
+# Variables de entorno — NUNCA commitear
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Backups generados
+db/backups/*.dump
+db/backups/*.sql.gz
+
+backend/Guia de desarrollo backend.md
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes locales
+pgdata/
+

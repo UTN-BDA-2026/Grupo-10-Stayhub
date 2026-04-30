@@ -1,0 +1,14 @@
+[project]
+name = "stayhub"
+version = "0.1.0"
+description = "Plataforma de gestión de alojamientos — UTN Base de Datos Avanzada"
+requires-python = ">=3.12"
+
+dependencies = [
+    "fastapi==0.115.0",
+    "uvicorn[standard]==0.30.6",
+    "sqlalchemy==2.0.35",
+    "psycopg2-binary==2.9.11",
+    "python-dotenv==1.0.1",
+    "pydantic-settings==2.5.2",
+]
