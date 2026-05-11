@@ -10,7 +10,7 @@ class UsuarioBase(BaseModel):
 
 
 class UsuarioCreate(UsuarioBase):
-    password_hash: str
+    password: str
 
 
 class UsuarioResponse(UsuarioBase):
