@@ -13,7 +13,7 @@ class Usuario(Base):
     nombre: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
-    rol: Mapped[str] = mapped_column(String(20), nullable=False)
+    rol: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
     creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     propiedades = relationship("Propiedad", back_populates="propietario")
