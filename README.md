@@ -125,7 +125,7 @@ stayhub/
 ```bash
 # 1. Clonar el repositorio
 git clone https://github.com/UTN-BDA-2026/Grupo-10-Stayhub.git
-cd stayhub
+cd Grupo-10-Stayhub
 
 # 2. Copiar el archivo de variables de entorno y completarlo
 cp .env.example .env
