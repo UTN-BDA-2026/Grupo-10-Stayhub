@@ -4,6 +4,7 @@ from app.database import close_mongo, connect_to_mongo
 from app.routers.logs import router as logs_router
 from app.routers.propiedades import router as propiedades_router
 from app.routers.reservas import router as reservas_router
+from app.routers.reseñas import router as reseñas_router
 from app.routers.usuarios import router as usuarios_router
 
 app = FastAPI(
@@ -26,6 +27,7 @@ async def shutdown_event():
 app.include_router(usuarios_router)
 app.include_router(propiedades_router)
 app.include_router(reservas_router)
+app.include_router(reseñas_router)
 app.include_router(logs_router)
 
 
