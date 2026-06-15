@@ -25,6 +25,16 @@ services:
     depends_on:
       - db
 
+  mongo:
+    image: mongo:7.0.5
+    container_name: stayhub_mongo
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-stayhub}
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongodata:/data/db
+
   backend:
     build: ./backend
     container_name: stayhub_api
@@ -33,6 +43,8 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - mongo
 
 volumes:
   pgdata:
+  mongodata:

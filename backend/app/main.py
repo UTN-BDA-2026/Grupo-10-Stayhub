@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 
+from app.database import close_mongo, connect_to_mongo
+from app.routers.logs import router as logs_router
 from app.routers.propiedades import router as propiedades_router
 from app.routers.reservas import router as reservas_router
 from app.routers.usuarios import router as usuarios_router
@@ -10,9 +12,21 @@ app = FastAPI(
     version="0.1.0",
 )
 
+
+@app.on_event("startup")
+async def startup_event():
+    await connect_to_mongo()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await close_mongo()
+
+
 app.include_router(usuarios_router)
 app.include_router(propiedades_router)
 app.include_router(reservas_router)
+app.include_router(logs_router)
 
 
 @app.get("/")

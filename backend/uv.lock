@@ -46,6 +46,15 @@ wheels = [
 ]
 
 [[package]]
+name = "dnspython"
+version = "2.8.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8c/8b/57666417c0f90f08bcafa776861060426765fdb422eb10212086fb811d26/dnspython-2.8.0.tar.gz", hash = "sha256:181d3c6996452cb1189c4046c61599b84a5a86e099562ffde77d26984ff26d0f", size = 368251, upload-time = "2025-09-07T18:58:00.022Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ba/5a/18ad964b0086c6e62e2e7500f7edc89e3faa45033c71c1893d34eed2b2de/dnspython-2.8.0-py3-none-any.whl", hash = "sha256:01d9bbc4a2d76bf0db7c1f729812ded6d912bd318d3b1cf81d30c0f845dbf3af", size = 331094, upload-time = "2025-09-07T18:57:58.071Z" },
+]
+
+[[package]]
 name = "fastapi"
 version = "0.115.0"
 source = { registry = "https://pypi.org/simple" }
@@ -143,6 +152,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/ce/cc/762dfb036166873f0059f3b7de4565e1b5bc3d6f28a414c13da27e442f99/idna-3.13.tar.gz", hash = "sha256:585ea8fe5d69b9181ec1afba340451fba6ba764af97026f92a91d4eef164a242", size = 194210, upload-time = "2026-04-22T16:42:42.314Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5d/13/ad7d7ca3808a898b4612b6fe93cde56b53f3034dcde235acb1f0e1df24c6/idna-3.13-py3-none-any.whl", hash = "sha256:892ea0cde124a99ce773decba204c5552b69c3c67ffd5f232eb7696135bc8bb3", size = 68629, upload-time = "2026-04-22T16:42:40.909Z" },
+]
+
+[[package]]
+name = "motor"
+version = "3.3.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pymongo" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e3/e3/f5244c84d7bdc149d99f9baa4313f197f7d14cfa1bfe1a6ac181e10cb3e2/motor-3.3.2.tar.gz", hash = "sha256:d2fc38de15f1c8058f389c1a44a4d4105c0405c48c061cd492a654496f7bc26a", size = 272583, upload-time = "2023-11-14T21:42:47.727Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3f/9a/1a43a329dffbd1a631c52e64c1e9c036621afdfd7f42096ae4bf2de4132b/motor-3.3.2-py3-none-any.whl", hash = "sha256:6fe7e6f0c4f430b9e030b9d22549b732f7c2226af3ab71ecc309e4a1b7d19953", size = 70598, upload-time = "2023-11-14T21:42:45.73Z" },
 ]
 
 [[package]]
@@ -290,6 +311,25 @@ wheels = [
 ]
 
 [[package]]
+name = "pymongo"
+version = "4.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dnspython" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b4/5e/11fad226acae56ef8cfee205bf491f4d50f9c12c5bf3294680006d04de54/pymongo-4.6.0.tar.gz", hash = "sha256:fb1c56d891f9e34303c451998ef62ba52659648bb0d75b03c5e4ac223a3342c2", size = 1430820, upload-time = "2023-11-01T22:12:31.873Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cc/d3/8e1475d40c0fa939b367eb2c8099479227dcc6d28f308f56d9033df65804/pymongo-4.6.0-cp312-cp312-macosx_10_9_universal2.whl", hash = "sha256:d603edea1ff7408638b2504905c032193b7dcee7af269802dbb35bc8c3310ed5", size = 533361, upload-time = "2023-11-01T22:10:20.821Z" },
+    { url = "https://files.pythonhosted.org/packages/f6/00/631bed6b95bf666173d454a201e808c178eabd13085cba02e0bea67daf67/pymongo-4.6.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:79f41576b3022c2fe9780ae3e44202b2438128a25284a8ddfa038f0785d87019", size = 694351, upload-time = "2023-11-01T22:10:23.022Z" },
+    { url = "https://files.pythonhosted.org/packages/37/1a/bcf9bcf8191f913a845e7dea211d00a614bc263300c88e49c5d5389b04e6/pymongo-4.6.0-cp312-cp312-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:49f2af6cf82509b15093ce3569229e0d53c90ad8ae2eef940652d4cf1f81e045", size = 704052, upload-time = "2023-11-01T22:10:25.141Z" },
+    { url = "https://files.pythonhosted.org/packages/bb/91/52a1b0a5b203aa7651c92dc62a561432bde2fef7db28c9c0f8155e11bbb1/pymongo-4.6.0-cp312-cp312-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:ecd9e1fa97aa11bf67472220285775fa15e896da108f425e55d23d7540a712ce", size = 700974, upload-time = "2023-11-01T22:10:28.34Z" },
+    { url = "https://files.pythonhosted.org/packages/83/81/e08a170fcf20ba6f2d21865f247d368c717d070f508963517a56c798a3ae/pymongo-4.6.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2d2be5c9c3488fa8a70f83ed925940f488eac2837a996708d98a0e54a861f212", size = 691622, upload-time = "2023-11-01T22:10:30.631Z" },
+    { url = "https://files.pythonhosted.org/packages/62/eb/4feb857b0ae14db129dc4b5f5fc5b9571f555652a272cec8d69fd310b495/pymongo-4.6.0-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:8ab6bcc8e424e07c1d4ba6df96f7fb963bcb48f590b9456de9ebd03b88084fe8", size = 681223, upload-time = "2023-11-01T22:10:33.211Z" },
+    { url = "https://files.pythonhosted.org/packages/e2/e7/44f649615355878067f33453a594a4193518349d47e0e990abb0d506d564/pymongo-4.6.0-cp312-cp312-win32.whl", hash = "sha256:47aa128be2e66abd9d1a9b0437c62499d812d291f17b55185cb4aa33a5f710a4", size = 467562, upload-time = "2023-11-01T22:10:35.362Z" },
+    { url = "https://files.pythonhosted.org/packages/c5/6a/7a356bbe85aceee14299af5fa8947bfb8c55fb131476220c3627891a6258/pymongo-4.6.0-cp312-cp312-win_amd64.whl", hash = "sha256:014e7049dd019a6663747ca7dae328943e14f7261f7c1381045dfc26a04fa330", size = 472836, upload-time = "2023-11-01T22:10:37.598Z" },
+]
+
+[[package]]
 name = "python-dotenv"
 version = "1.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -383,8 +423,10 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "motor" },
     { name = "psycopg2-binary" },
     { name = "pydantic-settings" },
+    { name = "pymongo" },
     { name = "python-dotenv" },
     { name = "sqlalchemy" },
     { name = "uvicorn", extra = ["standard"] },
@@ -393,8 +435,10 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = "==0.115.0" },
+    { name = "motor", specifier = "==3.3.2" },
     { name = "psycopg2-binary", specifier = "==2.9.11" },
     { name = "pydantic-settings", specifier = "==2.5.2" },
+    { name = "pymongo", specifier = "==4.6.0" },
     { name = "python-dotenv", specifier = "==1.0.1" },
     { name = "sqlalchemy", specifier = "==2.0.35" },
     { name = "uvicorn", extras = ["standard"], specifier = "==0.30.6" },

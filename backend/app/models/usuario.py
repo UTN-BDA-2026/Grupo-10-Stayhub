@@ -19,4 +19,3 @@ class Usuario(Base):
     propiedades = relationship("Propiedad", back_populates="propietario")
     reservas = relationship("Reserva", back_populates="huesped")
     resenas = relationship("Resena", back_populates="huesped")
-    logs_actividad = relationship("LogActividad", back_populates="usuario")
