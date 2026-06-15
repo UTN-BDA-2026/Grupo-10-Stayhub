@@ -1,44 +1,31 @@
-import hashlib
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.usuario import Usuario
+from app.repositories.usuario import UsuarioRepository
 from app.schemas.usuario import UsuarioCreate, UsuarioResponse
 
 router = APIRouter(prefix="/usuarios", tags=["Usuarios"])
 
-def get_password_hash(password: str) -> str:
-    # Hasheo de contraseña seguro usando SHA-256 (Built-in de Python)
-    return hashlib.sha256(password.encode('utf-8')).hexdigest()
+
+def get_usuario_repository(db: Session = Depends(get_db)) -> UsuarioRepository:
+    return UsuarioRepository(db)
+
 
 @router.get("/", response_model=list[UsuarioResponse])
-def listar_usuarios(db: Session = Depends(get_db)):
-    return db.query(Usuario).all()
+def listar_usuarios(repo: UsuarioRepository = Depends(get_usuario_repository)):
+    return repo.listar_todos()
 
 
 @router.get("/{id}", response_model=UsuarioResponse)
-def obtener_usuario(id: int, db: Session = Depends(get_db)):
-    usuario = db.query(Usuario).filter(Usuario.id == id).first()
+def obtener_usuario(id: int, repo: UsuarioRepository = Depends(get_usuario_repository)):
+    usuario = repo.obtener_por_id(id)
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return usuario
 
 
 @router.post("/", response_model=UsuarioResponse, status_code=201)
-def crear_usuario(payload: UsuarioCreate, db: Session = Depends(get_db)):
-    # 1. Separar la información
-    datos_usuario = payload.model_dump()
-    
-    # 2. Tomar el password en texto plano y eliminarlo del diccionario
-    password_plano = datos_usuario.pop("password")
-    
-    # 3. Incorporar el hash en su lugar por seguridad
-    datos_usuario["password_hash"] = get_password_hash(password_plano)
-    
-    usuario = Usuario(**datos_usuario)
-    db.add(usuario)
-    db.commit()
-    db.refresh(usuario)
+def crear_usuario(payload: UsuarioCreate, repo: UsuarioRepository = Depends(get_usuario_repository)):
+    usuario = repo.crear(payload)
     return usuario

@@ -2,10 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.propiedad import Propiedad
+from app.repositories.propiedad import PropiedadRepository
 from app.schemas.propiedad import PropiedadCreate, PropiedadResponse
 
 router = APIRouter(prefix="/propiedades", tags=["Propiedades"])
+
+
+def get_propiedad_repository(db: Session = Depends(get_db)) -> PropiedadRepository:
+    return PropiedadRepository(db)
 
 
 @router.get("/", response_model=list[PropiedadResponse])
@@ -14,60 +18,35 @@ def listar_propiedades(
     tipo: str | None = Query(None),
     precio_min: float | None = Query(None),
     precio_max: float | None = Query(None),
-    db: Session = Depends(get_db),
+    repo: PropiedadRepository = Depends(get_propiedad_repository),
 ):
-    query = db.query(Propiedad)
-
-    if ciudad is not None:
-        query = query.filter(Propiedad.ciudad == ciudad)
-    if tipo is not None:
-        query = query.filter(Propiedad.tipo == tipo)
-    if precio_min is not None:
-        query = query.filter(Propiedad.precio >= precio_min)
-    if precio_max is not None:
-        query = query.filter(Propiedad.precio <= precio_max)
-
-    return query.all()
+    return repo.listar_todos(ciudad, tipo, precio_min, precio_max)
 
 
 @router.get("/{id}", response_model=PropiedadResponse)
-def obtener_propiedad(id: int, db: Session = Depends(get_db)):
-    propiedad = db.query(Propiedad).filter(Propiedad.id == id).first()
+def obtener_propiedad(id: int, repo: PropiedadRepository = Depends(get_propiedad_repository)):
+    propiedad = repo.obtener_por_id(id)
     if not propiedad:
         raise HTTPException(status_code=404, detail="Propiedad no encontrada")
     return propiedad
 
 
 @router.post("/", response_model=PropiedadResponse, status_code=201)
-def crear_propiedad(payload: PropiedadCreate, db: Session = Depends(get_db)):
-    propiedad = Propiedad(**payload.model_dump())
-    db.add(propiedad)
-    db.commit()
-    db.refresh(propiedad)
-    return propiedad
+def crear_propiedad(payload: PropiedadCreate, repo: PropiedadRepository = Depends(get_propiedad_repository)):
+    return repo.crear(payload)
 
 
 @router.put("/{id}", response_model=PropiedadResponse)
-def actualizar_propiedad(id: int, payload: PropiedadCreate, db: Session = Depends(get_db)):
-    propiedad = db.query(Propiedad).filter(Propiedad.id == id).first()
+def actualizar_propiedad(id: int, payload: PropiedadCreate, repo: PropiedadRepository = Depends(get_propiedad_repository)):
+    propiedad = repo.actualizar(id, payload)
     if not propiedad:
         raise HTTPException(status_code=404, detail="Propiedad no encontrada")
-
-    for campo, valor in payload.model_dump().items():
-        setattr(propiedad, campo, valor)
-
-    db.commit()
-    db.refresh(propiedad)
     return propiedad
 
 
 @router.delete("/{id}", response_model=PropiedadResponse)
-def eliminar_propiedad(id: int, db: Session = Depends(get_db)):
-    propiedad = db.query(Propiedad).filter(Propiedad.id == id).first()
+def eliminar_propiedad(id: int, repo: PropiedadRepository = Depends(get_propiedad_repository)):
+    propiedad = repo.eliminar(id)
     if not propiedad:
         raise HTTPException(status_code=404, detail="Propiedad no encontrada")
-
-    propiedad.estado = "eliminada"
-    db.commit()
-    db.refresh(propiedad)
     return propiedad
