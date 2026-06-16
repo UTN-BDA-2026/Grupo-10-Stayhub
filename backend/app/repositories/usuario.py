@@ -1,11 +1,12 @@
-import hashlib
 from typing import Optional
-
+from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.models.usuario import Usuario
 from app.schemas.usuario import UsuarioCreate
 
+# Configuramos bcrypt como el algoritmo de encriptación estándar
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UsuarioRepository:
     def __init__(self, db: Session):
@@ -13,8 +14,13 @@ class UsuarioRepository:
 
     @staticmethod
     def get_password_hash(password: str) -> str:
-        """Hashear contraseña usando SHA-256"""
-        return hashlib.sha256(password.encode('utf-8')).hexdigest()
+        """Hashear contraseña usando bcrypt (Seguro contra fuerza bruta)"""
+        return pwd_context.hash(password)
+
+    @staticmethod
+    def verificar_password(plain_password: str, hashed_password: str) -> bool:
+        """Verificar si la contraseña plana coincide con el hash en la BD"""
+        return pwd_context.verify(plain_password, hashed_password)
 
     def listar_todos(self) -> list[Usuario]:
         """Obtener todos los usuarios"""
@@ -35,7 +41,7 @@ class UsuarioRepository:
         # Extraer contraseña en texto plano
         password_plano = datos_usuario.pop("password")
         
-        # Hashear y guardar
+        # Hashear y guardar usando la nueva función segura
         datos_usuario["password_hash"] = self.get_password_hash(password_plano)
         
         usuario = Usuario(**datos_usuario)
