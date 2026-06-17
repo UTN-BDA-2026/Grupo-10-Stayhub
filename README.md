@@ -6,13 +6,13 @@
 
 ## 👥 Integrantes grupo 10
 
-| Nombre |
-|---|
-| Moya, Carlos Esteban |
+| Nombre                       |
+| ---------------------------- |
+| Moya, Carlos Esteban         |
 | Iriarte Lopez, Ana Valentina |
-| Parada, Solange Yanina |
-| Vulcano, Candela Nair |
-| Reali, Tomas |
+| Parada, Solange Yanina       |
+| Vulcano, Candela Nair        |
+| Reali, Tomas                 |
 
 ---
 
@@ -29,33 +29,37 @@ El backend actúa únicamente como capa de exposición de la lógica implementad
 ## 🛠️ Stack Tecnológico
 
 ### Base de Datos
-| Tecnología | Uso |
-|---|---|
-| **PostgreSQL 16** | Motor principal de base de datos relacional |
-| **PostGIS** | Extensión espacial para búsquedas por proximidad geográfica |
+
+| Tecnología        | Uso                                                         |
+| ----------------- | ----------------------------------------------------------- |
+| **PostgreSQL 16** | Motor principal de base de datos relacional                 |
+| **PostGIS**       | Extensión espacial para búsquedas por proximidad geográfica |
 
 ### Backend
-| Tecnología | Uso |
-|---|---|
-| **Python 3.12** | Lenguaje principal del servidor |
-| **FastAPI** | Framework HTTP para exposición de endpoints REST |
-| **SQLAlchemy** | ORM y manejo de conexiones |
-| **Psycopg2** | Driver nativo PostgreSQL |
-| **Uvicorn** | Servidor ASGI |
+
+| Tecnología      | Uso                                              |
+| --------------- | ------------------------------------------------ |
+| **Python 3.12** | Lenguaje principal del servidor                  |
+| **FastAPI**     | Framework HTTP para exposición de endpoints REST |
+| **SQLAlchemy**  | ORM y manejo de conexiones                       |
+| **Psycopg2**    | Driver nativo PostgreSQL                         |
+| **Uvicorn**     | Servidor ASGI                                    |
 
 ### Infraestructura y Herramientas
-| Tecnología | Uso |
-|---|---|
+
+| Tecnología                  | Uso                                               |
+| --------------------------- | ------------------------------------------------- |
 | **Docker / Docker Compose** | Contenerización de la base de datos y el servicio |
-| **pgAdmin 4** | Administración visual de PostgreSQL |
-| **pg_dump / pg_restore** | Backups lógicos programados |
-| **Git** | Control de versiones |
+| **pgAdmin 4**               | Administración visual de PostgreSQL               |
+| **pg_dump / pg_restore**    | Backups lógicos programados                       |
+| **Git**                     | Control de versiones                              |
 
 ---
 
 ## 🗄️ Temas de Base de Datos Aplicados
 
 ### 🔁 Backups
+
 - Estrategia de backup completo semanal con `pg_dump` en formato custom
 - Backup incremental diario mediante WAL archiving
 - Script automatizado de restauración con `pg_restore` y verificación de integridad
@@ -63,22 +67,19 @@ El backend actúa únicamente como capa de exposición de la lógica implementad
 
 ### 🔍 Índices
 
-El proyecto aplica todos los tipos de índices vistos en la cátedra, cada uno justificado por una consulta concreta:
+El proyecto aplica los siguientes índices vistos en la cátedra:
 
-| Tipo | Columna(s) | Query que optimiza |
-|---|---|---|
-| **B+Tree** | `precio`, `fecha_checkin`, `fecha_checkout` | Búsqueda por rango de fechas y precios |
-| **Hash** | `email` (usuarios), `token_sesion` | Login y autenticación — igualdad exacta O(1) |
-| **Bitmap** | `estado_reserva`, `tipo_alojamiento` | Filtros analíticos sobre campos de baja cardinalidad |
-| **Multicolumna** | `(ciudad, precio)`, `(estado_reserva, fecha_checkin)` | Buscador con filtros combinados |
-| **Parcial** | `reservas WHERE estado != 'cancelada'` | Reduce el índice a filas operativamente relevantes |
-| **Cubriente** | `(propiedad_id, precio) INCLUDE (nombre, rating)` | Listado principal sin acceder a la tabla (index-only scan) |
-| **Funcional** | `lower(email)`, `date_trunc('month', fecha_reserva)` | Búsqueda case-insensitive y agrupación mensual |
-| **BRIN** | `logs_actividad.created_at`, `eventos_auditoria.timestamp` | Tablas de millones de filas con correlación física por fecha |
-| **GIN** | `amenidades` (JSONB), `tags[]`, descripción (full-text) | Búsqueda en datos compuestos: arrays, JSON y texto libre |
-| **GiST / R-Tree** | `ubicacion` (geometry point) | Búsqueda espacial: "propiedades a menos de X km de este punto" |
+- 1. B+Tree (por defecto): precio, fechas, rol, etc. — búsquedas por rango
+- 2. Hash (email): usuario.email, para igualdad exacta en login O(1)
+- 3. Compuesto: (ciudad, estado), (propiedad_id, estado) — filtros combinados
+- 4. GIN (JSONB): amenidades — búsqueda dentro de JSON
+- 5. GIN (array): tags — búsqueda dentro de arrays
+- 6. Constraint CHECK: validaciones a nivel de BD
+- 7. Constraint UNIQUE: email
+- 8. Constraint FK: integridad referencial en cascada
 
 ### 💳 Transacciones
+
 - Control de concurrencia en reservas: prevención de **doble booking** mediante niveles de aislamiento `SERIALIZABLE`
 - Bloqueos explícitos con `SELECT FOR UPDATE` sobre disponibilidad
 - Manejo de rollback automático ante fallos de pago o validación
@@ -117,6 +118,7 @@ stayhub/
 ## ⚙️ Instalación y Ejecución
 
 ### Requisitos previos
+
 - Docker y Docker Compose instalados
 - Git
 
