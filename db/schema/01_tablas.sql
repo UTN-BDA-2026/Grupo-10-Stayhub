@@ -1,3 +1,4 @@
+-- Active: 1777775182136@@127.0.0.1@5432@bd_tp1
 CREATE EXTENSION IF NOT EXISTS plpgsql;
 
 -- ============================================================================
@@ -21,9 +22,9 @@ CREATE TABLE IF NOT EXISTS usuarios (
 );
 
 -- Índices en usuarios
-CREATE INDEX IF NOT EXISTS ix_usuario_email ON usuarios USING hash (email);
+-- CREATE INDEX IF NOT EXISTS ix_usuario_email ON usuarios USING hash (email);
 
-CREATE INDEX IF NOT EXISTS ix_usuario_rol ON usuarios (rol);
+-- CREATE INDEX IF NOT EXISTS ix_usuario_rol ON usuarios (rol);
 
 -- ============================================================================
 -- 2. TABLA: PROPIEDADES
@@ -141,16 +142,3 @@ CREATE INDEX IF NOT EXISTS ix_resena_propiedad ON reseñas (propiedad_id);
 
 -- - Búsqueda de reseñas por huésped
 CREATE INDEX IF NOT EXISTS ix_resena_huesped ON reseñas (huesped_id);
-
--- ============================================================================
--- RESUMEN DE ÍNDICES IMPLEMENTADOS
--- ============================================================================
--- 1. B+Tree (por defecto): precio, fechas, rol, etc. — búsquedas por rango
--- 2. Hash (email): usuario.email, para igualdad exacta en login O(1)
--- 3. Compuesto: (ciudad, estado), (propiedad_id, estado) — filtros combinados
--- 4. GIN (JSONB): amenidades — búsqueda dentro de JSON
--- 5. GIN (array): tags — búsqueda dentro de arrays
--- 6. Constraint CHECK: validaciones a nivel de BD
--- 7. Constraint UNIQUE: email
--- 8. Constraint FK: integridad referencial en cascada
--- ============================================================================
