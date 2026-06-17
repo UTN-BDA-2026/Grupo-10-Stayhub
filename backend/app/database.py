@@ -7,8 +7,9 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 load_dotenv()
 
+# 1. CAMBIO DE SEGURIDAD: Usamos las credenciales de la API, no las del administrador
 DATABASE_URL = (
-    f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"
+    f"postgresql://{os.getenv('API_DB_USER')}:{os.getenv('API_DB_PASSWORD')}"
     f"@db:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DB')}"
 )
 
@@ -17,8 +18,15 @@ MONGODB_URL = os.getenv(
     f"mongodb://mongo:{os.getenv('MONGO_PORT', 27017)}/{os.getenv('MONGO_DB', 'stayhub')}"
 )
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+# 2. CAMBIO DE SEGURIDAD: Agregamos connect_args para gestionar el SSL/TLS
+engine = create_engine(
+    DATABASE_URL, 
+    pool_pre_ping=True,
+    connect_args={"sslmode": "prefer"} 
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# ... (Acá para abajo dejás todo el código de Mongo y get_db exactamente como estaba)
 
 # MongoDB async client
 mongo_client: AsyncIOMotorClient | None = None
