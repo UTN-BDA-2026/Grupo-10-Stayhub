@@ -3,6 +3,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.models.propiedad import Propiedad
+from app.models.enums import EstadoPropiedad
 from app.schemas.propiedad import PropiedadCreate
 from app.repositories.base import BaseRepository
 
@@ -48,7 +49,7 @@ class PropiedadRepository(BaseRepository[Propiedad]):
         if not propiedad:
             return None
 
-        propiedad.estado = "eliminada"
+        propiedad.estado = EstadoPropiedad.ELIMINADA
         self.db.commit()
         self.db.refresh(propiedad)
         return propiedad

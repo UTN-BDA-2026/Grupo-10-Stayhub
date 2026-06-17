@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.models.propiedad import Propiedad
 from app.models.reserva import Reserva
+from app.models.enums import EstadoReserva
 from app.schemas.reserva import ReservaCreate, ReservaEstadoUpdate
 from app.repositories.base import BaseRepository
 
@@ -51,7 +52,7 @@ class ReservaRepository(BaseRepository[Reserva]):
         # Verificar superposición de fechas
         superposicion = self.db.query(Reserva).filter(
             Reserva.propiedad_id == propiedad_id,
-            Reserva.estado.in_(["confirmada", "pendiente"]),
+            Reserva.estado.in_([EstadoReserva.CONFIRMADA, EstadoReserva.PENDIENTE]),
             Reserva.fecha_checkin < fecha_checkout,
             Reserva.fecha_checkout > fecha_checkin,
         ).first()

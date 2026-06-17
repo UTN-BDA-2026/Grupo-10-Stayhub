@@ -1,6 +1,7 @@
 from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict
+from app.models.enums import EstadoReserva
 
 
 class ReservaBase(BaseModel):
@@ -12,16 +13,16 @@ class ReservaBase(BaseModel):
 
 
 class ReservaCreate(ReservaBase):
-    estado: str = "pendiente"
+    estado: EstadoReserva = EstadoReserva.PENDIENTE
 
 
 class ReservaEstadoUpdate(BaseModel):
-    estado: str
+    estado: EstadoReserva
 
 
 class ReservaResponse(ReservaBase):
     id: int
-    estado: str
+    estado: EstadoReserva
     creado_en: datetime
 
     model_config = ConfigDict(from_attributes=True)

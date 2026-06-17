@@ -1,11 +1,12 @@
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, Text, Index
-from sqlalchemy.dialects.postgresql import ARRAY, JSON
+from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, Text, Index, Enum
+from sqlalchemy.dialects.postgresql import ARRAY, JSON, GIN
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+from app.models.enums import EstadoPropiedad
 
 
 class Propiedad(Base):
@@ -22,7 +23,7 @@ class Propiedad(Base):
     precio: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     amenidades: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     tags: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
-    estado: Mapped[str] = mapped_column(String(20), nullable=False)
+    estado: Mapped[EstadoPropiedad] = mapped_column(Enum(EstadoPropiedad), nullable=False)
     rating: Mapped[Decimal | None] = mapped_column(Numeric(3, 2), nullable=True)
     creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
