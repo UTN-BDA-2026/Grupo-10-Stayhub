@@ -23,7 +23,7 @@ class PropiedadCreate(PropiedadBase):
 
 class PropiedadResponse(PropiedadBase):
     id: int
-        estado: EstadoPropiedad
+    estado: EstadoPropiedad
     rating: float | None = None
     creado_en: datetime
 
