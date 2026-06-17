@@ -6,11 +6,14 @@ from sqlalchemy.orm import Session
 from app.models.propiedad import Propiedad
 from app.models.reserva import Reserva
 from app.schemas.reserva import ReservaCreate, ReservaEstadoUpdate
+from app.repositories.base import BaseRepository
 
 
-class ReservaRepository:
+class ReservaRepository(BaseRepository[Reserva]):
+    """Repository para Reserva. Hereda CRUD base de BaseRepository."""
+
     def __init__(self, db: Session):
-        self.db = db
+        super().__init__(db, Reserva)
 
     def listar_todos(
         self,
@@ -29,10 +32,6 @@ class ReservaRepository:
             query = query.filter(Reserva.propiedad_id == propiedad_id)
 
         return query.all()
-
-    def obtener_por_id(self, reserva_id: int) -> Optional[Reserva]:
-        """Obtener una reserva por su ID"""
-        return self.db.query(Reserva).filter(Reserva.id == reserva_id).first()
 
     def validar_disponibilidad(
         self,

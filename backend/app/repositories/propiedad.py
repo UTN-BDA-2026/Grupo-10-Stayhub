@@ -4,11 +4,14 @@ from sqlalchemy.orm import Session
 
 from app.models.propiedad import Propiedad
 from app.schemas.propiedad import PropiedadCreate
+from app.repositories.base import BaseRepository
 
 
-class PropiedadRepository:
+class PropiedadRepository(BaseRepository[Propiedad]):
+    """Repository para Propiedad. Hereda CRUD base de BaseRepository."""
+
     def __init__(self, db: Session):
-        self.db = db
+        super().__init__(db, Propiedad)
 
     def listar_todos(
         self,
@@ -31,30 +34,13 @@ class PropiedadRepository:
 
         return query.all()
 
-    def obtener_por_id(self, propiedad_id: int) -> Optional[Propiedad]:
-        """Obtener una propiedad por su ID"""
-        return self.db.query(Propiedad).filter(Propiedad.id == propiedad_id).first()
-
     def crear(self, payload: PropiedadCreate) -> Propiedad:
         """Crear una nueva propiedad"""
-        propiedad = Propiedad(**payload.model_dump())
-        self.db.add(propiedad)
-        self.db.commit()
-        self.db.refresh(propiedad)
-        return propiedad
+        return super().crear(**payload.model_dump())
 
     def actualizar(self, propiedad_id: int, payload: PropiedadCreate) -> Optional[Propiedad]:
         """Actualizar una propiedad"""
-        propiedad = self.obtener_por_id(propiedad_id)
-        if not propiedad:
-            return None
-
-        for campo, valor in payload.model_dump().items():
-            setattr(propiedad, campo, valor)
-
-        self.db.commit()
-        self.db.refresh(propiedad)
-        return propiedad
+        return super().actualizar(propiedad_id, payload.model_dump())
 
     def eliminar(self, propiedad_id: int) -> Optional[Propiedad]:
         """Marcar una propiedad como eliminada (soft delete)"""

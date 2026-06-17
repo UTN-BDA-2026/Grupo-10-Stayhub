@@ -4,19 +4,18 @@ from sqlalchemy.orm import Session
 
 from app.models.reseña import Resena
 from app.schemas.resena import ResenaCreate
+from app.repositories.base import BaseRepository
 
 
-class ResenaRepository:
+class ResenaRepository(BaseRepository[Resena]):
+    """Repository para Reseña. Hereda CRUD base de BaseRepository."""
+
     def __init__(self, db: Session):
-        self.db = db
+        super().__init__(db, Resena)
 
     def listar_todas(self, limite: int = 100) -> list[Resena]:
         """Obtener todas las reseñas"""
         return self.db.query(Resena).limit(limite).all()
-
-    def obtener_por_id(self, resena_id: int) -> Optional[Resena]:
-        """Obtener una reseña por su ID"""
-        return self.db.query(Resena).filter(Resena.id == resena_id).first()
 
     def obtener_por_propiedad(self, propiedad_id: int, limite: int = 50) -> list[Resena]:
         """Obtener reseñas de una propiedad"""
