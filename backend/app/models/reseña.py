@@ -14,7 +14,7 @@ class Resena(Base):
     propiedad_id: Mapped[int] = mapped_column(ForeignKey("propiedades.id"), nullable=False)
     huesped_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
     puntuacion: Mapped[int] = mapped_column(SmallInteger, nullable=False)
-    comentario: Mapped[str | None] = mapped_column(Text, nullable=True)
+    comentario: Mapped[str] = mapped_column(Text, nullable=True)
     creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     reserva = relationship("Reserva", back_populates="resena")

@@ -56,6 +56,30 @@ uv sync
 
 Esto crea el entorno virtual y instala las dependencias del `pyproject.toml`.
 
+## Migraciones con Alembic
+
+Cuando la base esté vacía o quieras llevarla al último estado del ORM:
+
+```bash
+uv run alembic upgrade head
+```
+
+Para ver la revisión actual:
+
+```bash
+uv run alembic current
+```
+
+## Migración de esquema con ORM
+
+Si necesitás crear las tablas desde los modelos de SQLAlchemy (sin ejecutar SQL manual):
+
+```bash
+uv run python scripts/migrate_orm.py
+```
+
+Este comando crea únicamente las tablas faltantes definidas en `app/models/`.
+
 ## Ejecución local
 
 ```bash
@@ -134,15 +158,6 @@ Convención usada:
 - `Base`: campos comunes
 - `Create`: datos requeridos para crear
 - `Response`: salida hacia el cliente
-
-## Reglas de diseño respetadas
-
-- No se usa SQL crudo en el backend.
-- No se crean índices desde Python.
-- No se generan migraciones automáticas.
-- No se usa `Base.metadata.create_all()`.
-- No se implementa autenticación compleja.
-- No se agregan tests.
 
 ## Nota importante sobre la base de datos
 

@@ -133,13 +133,16 @@ cd Grupo-10-Stayhub
 cp .env.example .env
 
 # 3. Levantar los contenedores (PostgreSQL + PostGIS + API)
-#    El esquema, índices y datos de prueba se ejecutan automáticamente al iniciar
 docker compose up -d
 
-# 4. Acceder a la API
+# 4. Aplicar la migración inicial desde Alembic
+cd backend
+uv run alembic upgrade head
+
+# 5. Acceder a la API
 # http://localhost:8000/docs  →  Swagger UI interactivo
 
-# 5. Acceder a pgAdmin
+# 6. Acceder a pgAdmin
 # http://localhost:5050
 ```
 
