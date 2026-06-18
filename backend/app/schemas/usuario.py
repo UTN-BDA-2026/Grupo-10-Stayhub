@@ -1,16 +1,18 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UsuarioBase(BaseModel):
     nombre: str
-    email: str
-    rol: str
+    email: EmailStr
+    rol: Literal["huesped", "propietario", "admin"]
 
 
 class UsuarioCreate(UsuarioBase):
-    password: str
+    password: str = Field(..., min_length=8)
 
 
 class UsuarioResponse(UsuarioBase):
@@ -21,7 +23,7 @@ class UsuarioResponse(UsuarioBase):
 
 
 class LoginRequest(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 
