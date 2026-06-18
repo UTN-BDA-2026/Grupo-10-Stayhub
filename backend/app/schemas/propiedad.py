@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.enums import EstadoPropiedad
 
@@ -13,7 +13,7 @@ class PropiedadBase(BaseModel):
     ciudad: str
     direccion: str
     ubicacion: str | None = None
-    precio: float
+    precio: float = Field(..., gt=0)
     amenidades: dict | None = None
     tags: list[str] | None = None
 

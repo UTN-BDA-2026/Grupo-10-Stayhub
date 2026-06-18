@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.database import get_db
+from app.database import get_db, get_mongo_db
 from app.repositories.propiedad import PropiedadRepository
+from app.utils.log_utils import registrar_actividad
 from app.schemas.propiedad import PropiedadCreate, PropiedadResponse
 
 router = APIRouter(prefix="/propiedades", tags=["Propiedades"])
@@ -45,8 +46,23 @@ def actualizar_propiedad(id: int, payload: PropiedadCreate, repo: PropiedadRepos
 
 
 @router.delete("/{id}", response_model=PropiedadResponse)
-def eliminar_propiedad(id: int, repo: PropiedadRepository = Depends(get_propiedad_repository)):
+def eliminar_propiedad(
+    id: int, 
+    background_tasks: BackgroundTasks,
+    repo: PropiedadRepository = Depends(get_propiedad_repository)
+):
     propiedad = repo.eliminar(id)
     if not propiedad:
         raise HTTPException(status_code=404, detail="Propiedad no encontrada")
+        
+    background_tasks.add_task(
+        registrar_actividad,
+        db=get_mongo_db(),
+        usuario_id=propiedad.propietario_id,
+        accion="DELETE",
+        tabla="propiedades",
+        registro_id=propiedad.id,
+        detalle={"nombre": propiedad.nombre}
+    )
+        
     return propiedad

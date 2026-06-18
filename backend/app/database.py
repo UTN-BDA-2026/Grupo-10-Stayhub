@@ -13,10 +13,17 @@ DATABASE_URL = (
     f"@db:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DB')}"
 )
 
-MONGODB_URL = os.getenv(
-    "MONGODB_URL",
-    f"mongodb://mongo:{os.getenv('MONGO_PORT', 27017)}/{os.getenv('MONGO_DB', 'stayhub')}"
-)
+_mongo_user = os.getenv("MONGO_USER")
+_mongo_pass = os.getenv("MONGO_PASSWORD")
+_mongo_port = os.getenv("MONGO_PORT", 27017)
+_mongo_db = os.getenv("MONGO_DB", "stayhub")
+
+if _mongo_user and _mongo_pass:
+    _default_mongo_url = f"mongodb://{_mongo_user}:{_mongo_pass}@mongo:{_mongo_port}/{_mongo_db}?authSource=admin"
+else:
+    _default_mongo_url = f"mongodb://mongo:{_mongo_port}/{_mongo_db}"
+
+MONGODB_URL = os.getenv("MONGODB_URL", _default_mongo_url)
 
 # 2. CAMBIO DE SEGURIDAD: Agregamos connect_args para gestionar el SSL/TLS
 engine = create_engine(
