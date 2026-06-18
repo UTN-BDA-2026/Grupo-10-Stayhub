@@ -16,7 +16,7 @@ build/
 # Backups generados
 db/backups/*.dump
 db/backups/*.sql.gz
-
+CONTEXTO_PROYECTO.md
 backend/Guia de desarrollo backend.md
 
 # IDEs
