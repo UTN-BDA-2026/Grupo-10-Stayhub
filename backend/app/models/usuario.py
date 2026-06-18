@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, String
+from sqlalchemy import DateTime, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -14,7 +14,7 @@ class Usuario(Base):
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
     rol: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
-    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     propiedades = relationship("Propiedad", back_populates="propietario")
     reservas = relationship("Reserva", back_populates="huesped")

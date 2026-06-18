@@ -26,8 +26,11 @@ class PropiedadRepository(BaseRepository[Propiedad]):
 
         if ciudad is not None:
             query = query.filter(Propiedad.ciudad == ciudad)
+            
         if tipo is not None:
-            query = query.filter(Propiedad.tipo == tipo)
+            tipo_limpio = tipo.lower().strip().replace("cabaña", "cabana")
+            query = query.filter(Propiedad.tipo == tipo_limpio)
+            
         if precio_min is not None:
             query = query.filter(Propiedad.precio >= precio_min)
         if precio_max is not None:

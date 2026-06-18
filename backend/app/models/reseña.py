@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, SmallInteger, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, SmallInteger, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -15,7 +15,7 @@ class Resena(Base):
     huesped_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
     puntuacion: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     comentario: Mapped[str] = mapped_column(Text, nullable=True)
-    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     reserva = relationship("Reserva", back_populates="resena")
     propiedad = relationship("Propiedad", back_populates="resenas")

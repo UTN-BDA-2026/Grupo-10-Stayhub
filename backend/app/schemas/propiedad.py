@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from app.models.enums import EstadoPropiedad
 
@@ -16,6 +16,15 @@ class PropiedadBase(BaseModel):
     precio: float
     amenidades: dict | None = None
     tags: list[str] | None = None
+
+    @field_validator('tipo')
+    @classmethod
+    def normalizar_tipo(cls, v: str) -> str:
+        if v is not None:
+            v = v.lower().strip()
+            if v == "cabaña":
+                return "cabana"
+        return v
 
 
 class PropiedadCreate(PropiedadBase):

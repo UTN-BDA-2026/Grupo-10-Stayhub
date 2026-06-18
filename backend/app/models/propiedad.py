@@ -1,12 +1,11 @@
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, Text, Index, Enum
-from sqlalchemy.dialects.postgresql import ARRAY, JSON
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, Numeric, String, Text, func
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-from app.models.enums import EstadoPropiedad
 
 
 class Propiedad(Base):
@@ -21,21 +20,17 @@ class Propiedad(Base):
     direccion: Mapped[str] = mapped_column(Text, nullable=False)
     ubicacion: Mapped[str] = mapped_column(String, nullable=True)
     precio: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-    amenidades: Mapped[dict] = mapped_column(JSON, nullable=True)
+    amenidades: Mapped[dict] = mapped_column(JSONB, nullable=True)
     tags: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=True)
-    estado: Mapped[EstadoPropiedad] = mapped_column(Enum(EstadoPropiedad), nullable=False)
+    estado: Mapped[str] = mapped_column(String(20), nullable=False, server_default="disponible")
     rating: Mapped[Decimal] = mapped_column(Numeric(3, 2), nullable=True)
-    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
     propietario = relationship("Usuario", back_populates="propiedades")
     reservas = relationship("Reserva", back_populates="propiedad")
     resenas = relationship("Resena", back_populates="propiedad")
 
-    # Índices Avanzados
     __table_args__ = (
-        # 1. Índice Compuesto: Ideal para búsquedas combinadas. Ej: "Buscar propiedades en 'Mendoza' que estén 'Disponibles'"
         Index('ix_ciudad_estado', "ciudad", "estado"),
-        # 2. Índice GIN: Ideal para buscar dentro de arreglos o JSON. Permite preguntar "Dónde hay Wifi dentro del JSON amenidades" rápidamente.
-        Index('ix_amenidades_gin', "amenidades", postgresql_using='gin')
+        Index('ix_amenidades_gin', "amenidades", postgresql_using='gin'),
     )
-
