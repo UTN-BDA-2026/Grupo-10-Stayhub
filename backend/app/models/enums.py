@@ -3,8 +3,7 @@ from enum import Enum
 
 class EstadoPropiedad(str, Enum):
     DISPONIBLE = "disponible"
-    OCUPADA = "ocupada"
-    MANTENIMIENTO = "mantenimiento"
+    PAUSADA = "pausada"      # Alineado con CHECK constraint de la DB
     ELIMINADA = "eliminada"
 
 
