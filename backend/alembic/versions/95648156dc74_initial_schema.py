@@ -179,33 +179,9 @@ def upgrade() -> None:
         sa.CheckConstraint("puntuacion BETWEEN 1 AND 5", name=op.f("reseñas_puntuacion_check")),
     )
 
-    op.create_table(
-        "logs_actividad",
-        sa.Column("id", sa.BigInteger(), primary_key=True, nullable=False),
-        sa.Column("usuario_id", sa.Integer(), nullable=True),
-        sa.Column("accion", sa.String(length=100), nullable=False),
-        sa.Column("tabla", sa.String(length=100), nullable=True),
-        sa.Column("registro_id", sa.Integer(), nullable=True),
-        sa.Column(
-            "detalle",
-            postgresql.JSONB(astext_type=sa.Text()),
-            nullable=True,
-        ),
-        sa.Column("ip", postgresql.INET(), nullable=True),
-        sa.Column(
-            "creado_en",
-            sa.DateTime(timezone=True),
-            nullable=False,
-            server_default=sa.text("now()"),
-        ),
-        sa.PrimaryKeyConstraint("id", name=op.f("logs_actividad_pkey")),
-        sa.ForeignKeyConstraint(
-            ["usuario_id"],
-            ["usuarios.id"],
-            name=op.f("logs_actividad_usuario_id_fkey"),
-            ondelete="SET NULL",
-        ),
-    )
+    # NOTA: logs_actividad fue removida de PostgreSQL.
+    # Vive en MongoDB (colección logs_actividad en stayhub).
+    # Ver app/repositories/log_actividad.py y app/routers/logs.py.
 
     # Core search and access-path indexes.
     op.create_index("idx_propiedades_precio", "propiedades", ["precio"], unique=False)
@@ -243,14 +219,7 @@ def upgrade() -> None:
         [sa.text("lower(email)")],
         unique=False,
     )
-    op.create_index(
-        "idx_logs_brin",
-        "logs_actividad",
-        ["creado_en"],
-        unique=False,
-        postgresql_using="brin",
-        postgresql_with={"pages_per_range": 128},
-    )
+    # idx_logs_brin eliminado — logs_actividad vive en MongoDB.
     op.create_index(
         "idx_propiedades_amenidades_gin",
         "propiedades",
@@ -276,7 +245,7 @@ def upgrade() -> None:
 
     # Extra indexes already represented in the current ORM models.
     op.create_index("ix_ciudad_estado", "propiedades", ["ciudad", "estado"], unique=False)
-    op.create_index("ix_amenidades_gin", "propiedades", ["amenidades"], unique=False, postgresql_using="gin")
+    # ix_amenidades_gin eliminado — duplicado de idx_propiedades_amenidades_gin (línea ~254).
     op.create_index(op.f("ix_propiedades_ciudad"), "propiedades", ["ciudad"], unique=False)
     op.create_index(op.f("ix_usuarios_rol"), "usuarios", ["rol"], unique=False)
 
@@ -285,13 +254,13 @@ def downgrade() -> None:
     """Drop the baseline schema in reverse order."""
     op.drop_index(op.f("ix_usuarios_rol"), table_name="usuarios")
     op.drop_index(op.f("ix_propiedades_ciudad"), table_name="propiedades")
-    op.drop_index("ix_amenidades_gin", table_name="propiedades", postgresql_using="gin")
+    # ix_amenidades_gin eliminado del downgrade — era índice duplicado.
     op.drop_index("ix_ciudad_estado", table_name="propiedades")
     op.drop_index("idx_propiedades_ubicacion_gist", table_name="propiedades", postgresql_using="gist")
     op.drop_index("idx_propiedades_fulltext_gin", table_name="propiedades", postgresql_using="gin")
     op.drop_index("idx_propiedades_tags_gin", table_name="propiedades", postgresql_using="gin")
     op.drop_index("idx_propiedades_amenidades_gin", table_name="propiedades", postgresql_using="gin")
-    op.drop_index("idx_logs_brin", table_name="logs_actividad", postgresql_using="brin")
+    # idx_logs_brin eliminado del downgrade — logs_actividad vive en MongoDB.
     op.drop_index("idx_usuarios_email_lower", table_name="usuarios")
     op.drop_index("idx_propiedades_cubriente", table_name="propiedades")
     op.drop_index("idx_propiedades_disponibles", table_name="propiedades")
@@ -305,7 +274,7 @@ def downgrade() -> None:
     op.drop_index("idx_reservas_fechas", table_name="reservas")
     op.drop_index("idx_propiedades_precio", table_name="propiedades")
 
-    op.drop_table("logs_actividad")
+    # logs_actividad no se dropea — vive en MongoDB.
     op.drop_table("reseñas")
     op.drop_table("reservas")
     op.drop_table("propiedades")
