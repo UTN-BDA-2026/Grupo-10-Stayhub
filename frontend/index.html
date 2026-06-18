@@ -50,14 +50,16 @@
             <p>Ser la plataforma líder que conecte personas con hospedajes confiables, creando una experiencia simple, segura y accesible para viajeros y anfitriones.</p>
           </article>
           <article class="stat-card">
-            <span class="stat-label">DB</span>
-            <strong>PostgreSQL + PostGIS</strong>
-            <p>Base principal del proyecto académico.</p>
+            <span class="stat-label">Misión</span>
+            <strong>Conectamos espacios con personas, creando experiencias únicas.</strong>
+            <p>Facilitar el alquiler de alojamientos mediante una plataforma intuitiva que permita a los usuarios publicar, encontrar y reservar hospedajes de manera rápida y segura.</p>
           </article>
           <article class="stat-card">
-            <span class="stat-label">Estado</span>
-            <strong>Frontend base</strong>
-            <p>Listo para integrar datos reales más adelante.</p>
+            <span class="stat-label">Valores</span>
+            <strong>Confianza que conecta, compromiso que acompaña.</strong>
+            <p>Transparencia: ofrecemos información clara para tomar mejores decisiones.
+              Innovación: buscamos mejorar continuamente la experiencia digital.
+              Comunidad: conectamos personas y fomentamos experiencias positivas.</p>
           </article>
         </section>
       </header>
@@ -65,60 +67,23 @@
       <section class="panel reveal" style="--delay: 120ms">
         <div class="panel-head">
           <div>
-            <p class="eyebrow">Flujo</p>
-            <h2>Cómo está pensado el sistema</h2>
+            <p class="eyebrow">Nosotros</p>
+            <h2>¿Quiénes somos?</h2>
           </div>
-          <span class="chip">Backend + DB + Frontend</span>
+          <span class="chip">StayHub</span>
         </div>
 
-        <div class="flow-grid">
+        <div class="flow-grid1">
           <article class="flow-card">
-            <span class="flow-index">01</span>
-            <h3>Base de datos</h3>
+            <h3>Un sueño en proceso</h3>
             <p>
-              El modelo principal se implementa en PostgreSQL con tablas, índices
-              y transacciones definidas por tu parte.
-            </p>
-          </article>
-          <article class="flow-card">
-            <span class="flow-index">02</span>
-            <h3>Backend</h3>
-            <p>
-              FastAPI expone los recursos del dominio con una capa delgada sobre
-              SQLAlchemy.
-            </p>
-          </article>
-          <article class="flow-card">
-            <span class="flow-index">03</span>
-            <h3>Frontend</h3>
-            <p>
-              Esta interfaz sirve como punto de partida para consumir la API cuando
-              el flujo completo esté listo.
+              StayHub es una plataforma digital creada para transformar la forma en que las personas encuentran y ofrecen hospedaje. Nuestro objetivo es conectar a quienes tienen un espacio disponible con quienes buscan un lugar cómodo y confiable para quedarse. A través de una experiencia sencilla y segura, ayudamos a crear conexiones entre anfitriones y viajeros, haciendo que alquilar sea más fácil para todos.
             </p>
           </article>
         </div>
       </section>
 
-      <section class="panel split reveal" style="--delay: 220ms">
-        <div>
-          <p class="eyebrow">Recursos</p>
-          <h2>Endpoints principales</h2>
-          <div class="endpoint-list" id="endpoint-list"></div>
-        </div>
-
-        <aside class="console-card">
-          <p class="eyebrow">Vista previa</p>
-          <h2>Panel de control</h2>
-          <pre><code>GET /health
-GET /usuarios
-GET /propiedades
-GET /reservas</code></pre>
-          <p class="console-note">
-            Cuando la base de datos esté finalizada, este frontend podrá conectarse
-            a la API y mostrar datos reales.
-          </p>
-        </aside>
-      </section>
+      
     </main>
 
     <script src="app.js"></script>

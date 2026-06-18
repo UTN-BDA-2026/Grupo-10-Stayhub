@@ -258,6 +258,10 @@ h2 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.flow-grid1 {
+    grid-template-columns: 1fr;
+}
+
 .flow-card {
   padding: 1.2rem;
 }
