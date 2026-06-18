@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import close_mongo, connect_to_mongo
 from app.routers.logs import router as logs_router
@@ -11,6 +12,15 @@ app = FastAPI(
     title="StayHub API",
     description="Plataforma de gestión de alojamientos — UTN Base de Datos Avanzada",
     version="0.1.0",
+)
+
+# Configurar CORS para permitir solicitudes desde el frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # En producción, especificar dominios permitidos
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
