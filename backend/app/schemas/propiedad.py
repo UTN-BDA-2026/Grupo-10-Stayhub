@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
+
 from app.models.enums import EstadoPropiedad
 
 
@@ -21,10 +22,10 @@ class PropiedadCreate(PropiedadBase):
     pass
 
 
+
 class PropiedadResponse(PropiedadBase):
     id: int
     estado: EstadoPropiedad
     rating: float | None = None
     creado_en: datetime
-
     model_config = ConfigDict(from_attributes=True)
