@@ -1,13 +1,10 @@
 from typing import Optional
-from passlib.context import CryptContext
+import bcrypt
 from sqlalchemy.orm import Session
 
 from app.models.usuario import Usuario
 from app.schemas.usuario import UsuarioCreate
 from app.repositories.base import BaseRepository
-
-# Configuramos bcrypt como el algoritmo de encriptación estándar
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class UsuarioRepository(BaseRepository[Usuario]):
@@ -19,12 +16,20 @@ class UsuarioRepository(BaseRepository[Usuario]):
     @staticmethod
     def get_password_hash(password: str) -> str:
         """Hashear contraseña usando bcrypt (Seguro contra fuerza bruta)"""
-        return pwd_context.hash(password)
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed.decode('utf-8')
 
     @staticmethod
     def verificar_password(plain_password: str, hashed_password: str) -> bool:
         """Verificar si la contraseña plana coincide con el hash en la BD"""
-        return pwd_context.verify(plain_password, hashed_password)
+        try:
+            return bcrypt.checkpw(
+                plain_password.encode('utf-8'), 
+                hashed_password.encode('utf-8')
+            )
+        except ValueError:
+            return False
 
     def obtener_por_email(self, email: str) -> Optional[Usuario]:
         """Obtener un usuario por su email"""
