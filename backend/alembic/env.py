@@ -14,8 +14,14 @@ import app.models  # noqa: F401
 config = context.config
 load_dotenv()
 
-# Reuse backend DB connection settings for migrations.
-db_url = os.getenv("DATABASE_URL") or DATABASE_URL
+# Alembic usa el usuario ADMIN para migraciones (DDL: CREATE TABLE, etc.)
+# El usuario API solo tiene permisos DML (SELECT, INSERT, UPDATE, DELETE)
+# y se usa en runtime, no en migraciones.
+_migrations_url = (
+    f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"
+    f"@db:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DB')}"
+)
+db_url = os.getenv("ALEMBIC_DB_URL") or _migrations_url
 config.set_main_option("sqlalchemy.url", db_url)
 
 # Interpret the config file for Python logging.
@@ -68,11 +74,10 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    from sqlalchemy import create_engine
+    url = config.get_main_option("sqlalchemy.url")
+    print("====== ALEMBIC CONNECTING TO:", url, "======")
+    connectable = create_engine(url, poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
         context.configure(
