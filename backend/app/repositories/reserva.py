@@ -60,8 +60,13 @@ class ReservaRepository(BaseRepository[Reserva]):
         return superposicion is None
 
     def crear(self, payload: ReservaCreate) -> Reserva:
-        """Crear una nueva reserva con validación"""
-        # Validar disponibilidad
+        """
+        Valida disponibilidad y prepara la reserva para persistir.
+        El lock FOR UPDATE adquirido en validar_disponibilidad() se mantiene
+        activo hasta que el router haga db.commit(), garantizando atomicidad.
+        IMPORTANTE: NO hace commit. El commit lo controla el router.
+        """
+        # Validar disponibilidad (adquiere lock FOR UPDATE sobre la propiedad)
         if not self.validar_disponibilidad(
             payload.propiedad_id,
             payload.fecha_checkin,
@@ -71,23 +76,19 @@ class ReservaRepository(BaseRepository[Reserva]):
                 "La propiedad ya se encuentra reservada en las fechas solicitadas."
             )
 
-        # Crear reserva
+        # Preparar reserva (sin commit)
         datos_reserva = payload.model_dump()
         datos_reserva["creado_en"] = datetime.now(timezone.utc)
 
         reserva = Reserva(**datos_reserva)
         self.db.add(reserva)
-        self.db.commit()
-        self.db.refresh(reserva)
         return reserva
 
     def actualizar_estado(self, reserva_id: int, payload: ReservaEstadoUpdate) -> Optional[Reserva]:
-        """Actualizar el estado de una reserva"""
+        """Actualiza el estado de una reserva en memoria. El commit lo hace el router."""
         reserva = self.obtener_por_id(reserva_id)
         if not reserva:
             return None
 
         reserva.estado = payload.estado
-        self.db.commit()
-        self.db.refresh(reserva)
         return reserva

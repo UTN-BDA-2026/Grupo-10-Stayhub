@@ -1,7 +1,9 @@
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import DataError, IntegrityError
 
 from app.database import close_mongo, connect_to_mongo
 from app.routers.logs import router as logs_router
@@ -48,6 +50,29 @@ app.include_router(propiedades_router)
 app.include_router(reservas_router)
 app.include_router(reseñas_router)
 app.include_router(logs_router)
+
+
+# ─── Exception Handlers Globales ────────────────────────────────────────────
+# Capturan errores de DB que puedan escaparse de los routers individuales.
+# Garantizan que el cliente siempre recibe un código HTTP semántico,
+# nunca un 500 por una violación de constraint de la base de datos.
+
+@app.exception_handler(IntegrityError)
+async def integrity_error_handler(request: Request, exc: IntegrityError):
+    """ForeignKeyViolation, UniqueViolation, CheckViolation → 400"""
+    return JSONResponse(
+        status_code=400,
+        content={"detail": "Error de integridad en la base de datos. Verifique los datos enviados."},
+    )
+
+
+@app.exception_handler(DataError)
+async def data_error_handler(request: Request, exc: DataError):
+    """Formato inválido (ej: geometría PostGIS mal formada) → 422"""
+    return JSONResponse(
+        status_code=422,
+        content={"detail": "Formato de datos inválido. Verifique tipos y formatos (ej: coordenadas WKT)."},
+    )
 
 
 @app.get("/")

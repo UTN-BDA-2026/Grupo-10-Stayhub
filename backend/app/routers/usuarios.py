@@ -1,5 +1,6 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.database import get_db, get_mongo_db
 from app.repositories.usuario import UsuarioRepository
@@ -53,20 +54,32 @@ def obtener_usuario(id: int, repo: UsuarioRepository = Depends(get_usuario_repos
 
 @router.post("/", response_model=UsuarioResponse, status_code=201)
 def crear_usuario(
-    payload: UsuarioCreate, 
+    payload: UsuarioCreate,
     background_tasks: BackgroundTasks,
-    repo: UsuarioRepository = Depends(get_usuario_repository)
+    db: Session = Depends(get_db),
+    repo: UsuarioRepository = Depends(get_usuario_repository),
 ):
-    usuario = repo.crear(payload)
-    
-    background_tasks.add_task(
-        registrar_actividad,
-        db=get_mongo_db(),
-        usuario_id=usuario.id,
-        accion="CREATE",
-        tabla="usuarios",
-        registro_id=usuario.id,
-        detalle={"email": usuario.email, "rol": usuario.rol}
-    )
-    
-    return usuario
+    try:
+        usuario = repo.crear(payload)
+        db.commit()
+        db.refresh(usuario)
+
+        background_tasks.add_task(
+            registrar_actividad,
+            db=get_mongo_db(),
+            usuario_id=usuario.id,
+            accion="CREATE",
+            tabla="usuarios",
+            registro_id=usuario.id,
+            detalle={"email": usuario.email, "rol": usuario.rol}
+        )
+
+        return usuario
+
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="El email ya está registrado.")
+
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error interno al crear el usuario.")

@@ -31,15 +31,20 @@ class BaseRepository(Generic[T]):
         return self.db.query(self.model).all()
 
     def crear(self, **kwargs) -> T:
-        """Crear una nueva entidad"""
+        """
+        Prepara una nueva entidad para ser persistida.
+        IMPORTANTE: NO hace commit. El commit lo controla el router
+        para poder componer múltiples operaciones en una sola transacción.
+        """
         entidad = self.model(**kwargs)
         self.db.add(entidad)
-        self.db.commit()
-        self.db.refresh(entidad)
         return entidad
 
     def actualizar(self, id: int, datos: dict) -> Optional[T]:
-        """Actualizar una entidad existente"""
+        """
+        Aplica cambios a una entidad existente en memoria.
+        IMPORTANTE: NO hace commit. El commit lo controla el router.
+        """
         entidad = self.obtener_por_id(id)
         if not entidad:
             return None
@@ -49,19 +54,21 @@ class BaseRepository(Generic[T]):
             if hasattr(entidad, clave) and clave != "id":
                 setattr(entidad, clave, valor)
 
-        self.db.commit()
-        self.db.refresh(entidad)
         return entidad
 
-    def eliminar(self, id: int) -> bool:
-        """Eliminar una entidad por su ID"""
+    def eliminar(self, id: int) -> Optional[T]:
+        """
+        Marca una entidad para ser eliminada.
+        IMPORTANTE: NO hace commit. El commit lo controla el router.
+        Devuelve la entidad eliminada (o None si no existe) para poder
+        usarla en logs de auditoría antes de que desaparezca.
+        """
         entidad = self.obtener_por_id(id)
         if not entidad:
-            return False
+            return None
 
         self.db.delete(entidad)
-        self.db.commit()
-        return True
+        return entidad
 
     def contar(self) -> int:
         """Contar total de entidades"""
