@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.database import get_db
 from app.repositories.resena import ResenaRepository
@@ -56,34 +57,71 @@ async def obtener_reseñas_huesped(
 @router.post("/", response_model=ResenaResponse)
 async def crear_reseña(
     payload: ResenaCreate,
+    db: Session = Depends(get_db),
     repo: ResenaRepository = Depends(get_resena_repository)
 ):
     """Crear una nueva reseña"""
-    return repo.crear(payload)
+    try:
+        resena = repo.crear(payload)
+        db.commit()
+        db.refresh(resena)
+        return resena
+
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Error de integridad: verifique reserva_id y huesped_id.")
+
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error interno al crear la reseña.")
 
 
 @router.put("/{resena_id}", response_model=ResenaResponse)
 async def actualizar_reseña(
     resena_id: int,
     payload: dict,
+    db: Session = Depends(get_db),
     repo: ResenaRepository = Depends(get_resena_repository)
 ):
     """Actualizar una reseña"""
-    resena = repo.actualizar(resena_id, payload)
-    if not resena:
-        raise HTTPException(status_code=404, detail="Reseña no encontrada")
-    return resena
+    try:
+        resena = repo.actualizar(resena_id, payload)
+        if not resena:
+            raise HTTPException(status_code=404, detail="Reseña no encontrada")
+
+        db.commit()
+        db.refresh(resena)
+        return resena
+
+    except HTTPException:
+        raise
+
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error interno al actualizar la reseña.")
 
 
 @router.delete("/{resena_id}")
 async def eliminar_reseña(
     resena_id: int,
+    db: Session = Depends(get_db),
     repo: ResenaRepository = Depends(get_resena_repository)
 ):
     """Eliminar una reseña"""
-    if not repo.eliminar(resena_id):
-        raise HTTPException(status_code=404, detail="Reseña no encontrada")
-    return {"mensaje": "Reseña eliminada exitosamente"}
+    try:
+        resena = repo.eliminar(resena_id)
+        if not resena:
+            raise HTTPException(status_code=404, detail="Reseña no encontrada")
+
+        db.commit()
+        return {"mensaje": "Reseña eliminada exitosamente"}
+
+    except HTTPException:
+        raise
+
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error interno al eliminar la reseña.")
 
 
 @router.get("/propiedad/{propiedad_id}/promedio")
@@ -95,6 +133,6 @@ async def obtener_promedio_propiedad(
     promedio = repo.obtener_promedio_propiedad(propiedad_id)
     if promedio is None:
         return {"promedio": 0, "cantidad": 0}
-    
+
     cantidad = len(repo.obtener_por_propiedad(propiedad_id))
     return {"promedio": promedio, "cantidad": cantidad}
