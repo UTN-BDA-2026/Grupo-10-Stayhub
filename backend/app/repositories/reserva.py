@@ -39,17 +39,20 @@ class ReservaRepository(BaseRepository[Reserva]):
         propiedad_id: int,
         fecha_checkin: datetime,
         fecha_checkout: datetime,
-    ) -> bool:
-        """Validar si la propiedad está disponible en las fechas solicitadas"""
-        # Verificar que la propiedad existe
+    ) -> None:
+        """
+        Valida si la propiedad existe y está disponible en las fechas dadas.
+        Lanza ValueError con mensajes diferenciados según el caso de fallo.
+        """
+        # Verificar que la propiedad existe y bloquearla para la transacción
         propiedad = self.db.query(Propiedad).filter(
             Propiedad.id == propiedad_id
         ).with_for_update().first()
-        
-        if not propiedad:
-            return False
 
-        # Verificar superposición de fechas
+        if not propiedad:
+            raise ValueError(f"Propiedad con id {propiedad_id} no encontrada.")
+
+        # Verificar superposición de fechas con reservas activas
         superposicion = self.db.query(Reserva).filter(
             Reserva.propiedad_id == propiedad_id,
             Reserva.estado.in_([EstadoReserva.CONFIRMADA, EstadoReserva.PENDIENTE]),
@@ -57,7 +60,10 @@ class ReservaRepository(BaseRepository[Reserva]):
             Reserva.fecha_checkout > fecha_checkin,
         ).first()
 
-        return superposicion is None
+        if superposicion:
+            raise ValueError(
+                "La propiedad ya se encuentra reservada en las fechas solicitadas."
+            )
 
     def crear(self, payload: ReservaCreate) -> Reserva:
         """
@@ -66,15 +72,12 @@ class ReservaRepository(BaseRepository[Reserva]):
         activo hasta que el router haga db.commit(), garantizando atomicidad.
         IMPORTANTE: NO hace commit. El commit lo controla el router.
         """
-        # Validar disponibilidad (adquiere lock FOR UPDATE sobre la propiedad)
-        if not self.validar_disponibilidad(
+        # Lanza ValueError si la propiedad no existe o las fechas están ocupadas
+        self.validar_disponibilidad(
             payload.propiedad_id,
             payload.fecha_checkin,
             payload.fecha_checkout,
-        ):
-            raise ValueError(
-                "La propiedad ya se encuentra reservada en las fechas solicitadas."
-            )
+        )
 
         # Preparar reserva (sin commit)
         datos_reserva = payload.model_dump()
