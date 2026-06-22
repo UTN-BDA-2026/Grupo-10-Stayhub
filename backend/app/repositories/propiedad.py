@@ -1,58 +1,56 @@
-from typing import Optional
 
-from sqlalchemy.orm import Session
-
-from app.models.propiedad import Propiedad
-from app.models.enums import EstadoPropiedad
-from app.schemas.propiedad import PropiedadCreate
-from app.repositories.base import BaseRepository
-
+from sqlalchemy import and_, or_
 
 class PropiedadRepository(BaseRepository[Propiedad]):
-    """Repository para Propiedad. Hereda CRUD base de BaseRepository."""
-
-    def __init__(self, db: Session):
-        super().__init__(db, Propiedad)
-
-    def listar_todos(
+    
+    def buscar_propiedades(
         self,
         ciudad: Optional[str] = None,
         tipo: Optional[str] = None,
         precio_min: Optional[float] = None,
         precio_max: Optional[float] = None,
-    ) -> list[Propiedad]:
-        """Obtener propiedades con filtros opcionales"""
-        query = self.db.query(Propiedad)
-
-        if ciudad is not None:
-            query = query.filter(Propiedad.ciudad == ciudad)
-            
-        if tipo is not None:
-            tipo_limpio = tipo.lower().strip().replace("cabaña", "cabana")
-            query = query.filter(Propiedad.tipo == tipo_limpio)
-            
+        amenidades: Optional[list[str]] = None,
+        skip: int = 0,
+        limit: int = 20
+    ) -> dict:
+        """
+        Búsqueda avanzada con múltiples filtros
+        
+        Amenidades: ["wifi", "piscina", "aire_acondicionado"]
+        """
+        query = self.db.query(Propiedad).filter(
+            Propiedad.estado == "disponible"
+        )
+        
+        # Filtros individuales
+        if ciudad:
+            query = query.filter(Propiedad.ciudad.ilike(f"%{ciudad}%"))
+        
+        if tipo:
+            query = query.filter(Propiedad.tipo == tipo)
+        
         if precio_min is not None:
             query = query.filter(Propiedad.precio >= precio_min)
+        
         if precio_max is not None:
             query = query.filter(Propiedad.precio <= precio_max)
-
-        return query.all()
-
-    def crear(self, payload: PropiedadCreate) -> Propiedad:
-        """Crear una nueva propiedad"""
-        return super().crear(**payload.model_dump())
-
-    def actualizar(self, propiedad_id: int, payload: PropiedadCreate) -> Optional[Propiedad]:
-        """Actualizar una propiedad"""
-        return super().actualizar(propiedad_id, payload.model_dump())
-
-    def eliminar(self, propiedad_id: int) -> Optional[Propiedad]:
-        """Marcar una propiedad como eliminada (soft delete)"""
-        propiedad = self.obtener_por_id(propiedad_id)
-        if not propiedad:
-            return None
-
-        propiedad.estado = EstadoPropiedad.ELIMINADA
-        self.db.commit()
-        self.db.refresh(propiedad)
-        return propiedad
+        
+        # Filtro de amenidades (JSON)
+        if amenidades:
+            for amenidad in amenidades:
+                query = query.filter(
+                    Propiedad.amenidades[amenidad].astext == "true"
+                )
+        
+        # Contar ANTES de paginar
+        total = query.count()
+        
+        # Paginar
+        propiedades = query.offset(skip).limit(limit).all()
+        
+        return {
+            "total": total,
+            "skip": skip,
+            "limit": limit,
+            "items": propiedades
+        }

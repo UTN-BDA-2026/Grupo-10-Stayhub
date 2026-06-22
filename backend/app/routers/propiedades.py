@@ -1,112 +1,38 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-
 from app.database import get_db, get_mongo_db
 from app.repositories.propiedad import PropiedadRepository
 from app.utils.log_utils import registrar_actividad
 from app.schemas.propiedad import PropiedadCreate, PropiedadResponse
+from typing import Optional, List
 
-router = APIRouter(prefix="/propiedades", tags=["Propiedades"])
-
-
-def get_propiedad_repository(db: Session = Depends(get_db)) -> PropiedadRepository:
-    return PropiedadRepository(db)
-
-
-@router.get("/", response_model=list[PropiedadResponse])
-def listar_propiedades(
-    ciudad: str | None = Query(None),
-    tipo: str | None = Query(None),
-    precio_min: float | None = Query(None),
-    precio_max: float | None = Query(None),
-    repo: PropiedadRepository = Depends(get_propiedad_repository),
+@router.get("/", response_model=dict)
+def buscar_propiedades(
+    ciudad: Optional[str] = Query(None),
+    tipo: Optional[str] = Query(None),
+    precio_min: Optional[float] = Query(None),
+    precio_max: Optional[float] = Query(None),
+    amenidades: Optional[List[str]] = Query(None),
+    skip: int = Query(0),
+    limit: int = Query(20, le=100),
+    repo: PropiedadRepository = Depends(get_propiedad_repo)
 ):
-    return repo.listar_todos(ciudad, tipo, precio_min, precio_max)
-
-
-@router.get("/{id}", response_model=PropiedadResponse)
-def obtener_propiedad(id: int, repo: PropiedadRepository = Depends(get_propiedad_repository)):
-    propiedad = repo.obtener_por_id(id)
-    if not propiedad:
-        raise HTTPException(status_code=404, detail="Propiedad no encontrada")
-    return propiedad
-
-
-@router.post("/", response_model=PropiedadResponse, status_code=201)
-def crear_propiedad(
-    payload: PropiedadCreate,
-    db: Session = Depends(get_db),
-    repo: PropiedadRepository = Depends(get_propiedad_repository),
-):
-    try:
-        propiedad = repo.crear(payload)
-        db.commit()
-        db.refresh(propiedad)
-        return propiedad
-
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(status_code=400, detail="Error de integridad: verifique propietario_id.")
-
-    except Exception:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Error interno al crear la propiedad.")
-
-
-@router.put("/{id}", response_model=PropiedadResponse)
-def actualizar_propiedad(
-    id: int,
-    payload: PropiedadCreate,
-    db: Session = Depends(get_db),
-    repo: PropiedadRepository = Depends(get_propiedad_repository),
-):
-    try:
-        propiedad = repo.actualizar(id, payload.model_dump())
-        if not propiedad:
-            raise HTTPException(status_code=404, detail="Propiedad no encontrada")
-
-        db.commit()
-        db.refresh(propiedad)
-        return propiedad
-
-    except HTTPException:
-        raise
-
-    except Exception:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Error interno al actualizar la propiedad.")
-
-
-@router.delete("/{id}", response_model=PropiedadResponse)
-def eliminar_propiedad(
-    id: int,
-    background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db),
-    repo: PropiedadRepository = Depends(get_propiedad_repository),
-):
-    try:
-        propiedad = repo.eliminar(id)
-        if not propiedad:
-            raise HTTPException(status_code=404, detail="Propiedad no encontrada")
-
-        db.commit()
-
-        background_tasks.add_task(
-            registrar_actividad,
-            db=get_mongo_db(),
-            usuario_id=propiedad.propietario_id,
-            accion="DELETE",
-            tabla="propiedades",
-            registro_id=propiedad.id,
-            detalle={"nombre": propiedad.nombre}
-        )
-
-        return propiedad
-
-    except HTTPException:
-        raise
-
-    except Exception:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Error interno al eliminar la propiedad.")
+    """
+    Buscar propiedades con filtros avanzados
+    
+    Ejemplos:
+    - GET /propiedades?ciudad=Mendoza&tipo=casa
+    - GET /propiedades?precio_min=100&precio_max=500
+    - GET /propiedades?ciudad=Mendoza&amenidades=wifi&amenidades=piscina
+    - GET /propiedades?ciudad=Mendoza&skip=0&limit=10
+    """
+    return repo.buscar_propiedades(
+        ciudad=ciudad,
+        tipo=tipo,
+        precio_min=precio_min,
+        precio_max=precio_max,
+        amenidades=amenidades,
+        skip=skip,
+        limit=limit
+    )

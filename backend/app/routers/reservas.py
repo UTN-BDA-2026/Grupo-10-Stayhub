@@ -1,3 +1,10 @@
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+from app.database import get_db, get_mongo_db
+from app.repositories.reserva import ReservaRepository
+from app.utils.log_utils import registrar_actividad
+from app.schemas.reserva import ReservaCreate, ReservaEstadoUpdate, ReservaResponse
 
 @router.post("/", response_model=ReservaResponse, status_code=201)
 def crear_reserva(
