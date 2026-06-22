@@ -1,97 +1,56 @@
-from datetime import datetime, timezone
-from typing import Optional
-
-from sqlalchemy.orm import Session
-
-from app.models.propiedad import Propiedad
-from app.models.reserva import Reserva
-from app.models.enums import EstadoReserva
-from app.schemas.reserva import ReservaCreate, ReservaEstadoUpdate
-from app.repositories.base import BaseRepository
-
 
 class ReservaRepository(BaseRepository[Reserva]):
-    """Repository para Reserva. Hereda CRUD base de BaseRepository."""
-
-    def __init__(self, db: Session):
-        super().__init__(db, Reserva)
-
-    def listar_todos(
-        self,
-        estado: Optional[str] = None,
-        huesped_id: Optional[int] = None,
-        propiedad_id: Optional[int] = None,
-    ) -> list[Reserva]:
-        """Obtener reservas con filtros opcionales"""
-        query = self.db.query(Reserva)
-
-        if estado is not None:
-            query = query.filter(Reserva.estado == estado)
-        if huesped_id is not None:
-            query = query.filter(Reserva.huesped_id == huesped_id)
-        if propiedad_id is not None:
-            query = query.filter(Reserva.propiedad_id == propiedad_id)
-
-        return query.all()
-
-    def validar_disponibilidad(
+    
+    def crear_reserva_segura(
         self,
         propiedad_id: int,
-        fecha_checkin: datetime,
-        fecha_checkout: datetime,
-    ) -> None:
+        huesped_id: int,
+        fecha_checkin: date,
+        fecha_checkout: date,
+        precio_total: Decimal
+    ) -> Reserva:
         """
-        Valida si la propiedad existe y está disponible en las fechas dadas.
-        Lanza ValueError con mensajes diferenciados según el caso de fallo.
+        Crear reserva CON garantía de que la propiedad está disponible
+        
+        Usa SELECT FOR UPDATE para evitar race conditions
         """
-        # Verificar que la propiedad existe y bloquearla para la transacción
-        propiedad = self.db.query(Propiedad).filter(
+        # PASO 1: Lock de la propiedad para que nadie más la toque
+        propiedad = self.db.query(Propiedad).with_for_update().filter(
             Propiedad.id == propiedad_id
-        ).with_for_update().first()
-
-        if not propiedad:
-            raise ValueError(f"Propiedad con id {propiedad_id} no encontrada.")
-
-        # Verificar superposición de fechas con reservas activas
-        superposicion = self.db.query(Reserva).filter(
-            Reserva.propiedad_id == propiedad_id,
-            Reserva.estado.in_([EstadoReserva.CONFIRMADA, EstadoReserva.PENDIENTE]),
-            Reserva.fecha_checkin < fecha_checkout,
-            Reserva.fecha_checkout > fecha_checkin,
         ).first()
-
-        if superposicion:
+        
+        if not propiedad:
+            raise ValueError("Propiedad no existe")
+        
+        if propiedad.estado != "disponible":
+            raise ValueError("Propiedad no está disponible")
+        
+        # PASO 2: Verificar conflictos de fechas
+        # (Nadie puede interferir porque la propiedad está locked)
+        conflicto = self.db.query(Reserva).filter(
+            Reserva.propiedad_id == propiedad_id,
+            Reserva.estado.in_(["confirmada", "pendiente"]),
+            # Hay conflicto si: nueva_fecha_inicio < reserva_existente_fin
+            #             AND: nueva_fecha_fin > reserva_existente_inicio
+            Reserva.fecha_checkin < fecha_checkout,
+            Reserva.fecha_checkout > fecha_checkin
+        ).first()
+        
+        if conflicto:
             raise ValueError(
-                "La propiedad ya se encuentra reservada en las fechas solicitadas."
+                f"Propiedad ocupada {conflicto.fecha_checkin} a {conflicto.fecha_checkout}"
             )
-
-    def crear(self, payload: ReservaCreate) -> Reserva:
-        """
-        Valida disponibilidad y prepara la reserva para persistir.
-        El lock FOR UPDATE adquirido en validar_disponibilidad() se mantiene
-        activo hasta que el router haga db.commit(), garantizando atomicidad.
-        IMPORTANTE: NO hace commit. El commit lo controla el router.
-        """
-        # Lanza ValueError si la propiedad no existe o las fechas están ocupadas
-        self.validar_disponibilidad(
-            payload.propiedad_id,
-            payload.fecha_checkin,
-            payload.fecha_checkout,
+        
+        # PASO 3: Crear la reserva (dentro de la misma transacción)
+        nueva_reserva = Reserva(
+            propiedad_id=propiedad_id,
+            huesped_id=huesped_id,
+            fecha_checkin=fecha_checkin,
+            fecha_checkout=fecha_checkout,
+            precio_total=precio_total,
+            estado="pendiente"
         )
-
-        # Preparar reserva (sin commit)
-        datos_reserva = payload.model_dump()
-        datos_reserva["creado_en"] = datetime.now(timezone.utc)
-
-        reserva = Reserva(**datos_reserva)
-        self.db.add(reserva)
-        return reserva
-
-    def actualizar_estado(self, reserva_id: int, payload: ReservaEstadoUpdate) -> Optional[Reserva]:
-        """Actualiza el estado de una reserva en memoria. El commit lo hace el router."""
-        reserva = self.obtener_por_id(reserva_id)
-        if not reserva:
-            return None
-
-        reserva.estado = payload.estado
-        return reserva
+        self.db.add(nueva_reserva)
+        
+        # El lock se libera cuando la transacción commitea
+        return nueva_reserva
