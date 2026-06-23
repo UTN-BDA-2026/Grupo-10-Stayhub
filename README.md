@@ -60,10 +60,13 @@ El backend actúa únicamente como capa de exposición de la lógica implementad
 
 ### 🔁 Backups
 
-- Estrategia de backup completo semanal con `pg_dump` en formato custom
-- Backup incremental diario mediante WAL archiving
-- Script automatizado de restauración con `pg_restore` y verificación de integridad
-- Política de retención: 4 backups semanales + 30 backups diarios
+- Backup completo con `pg_dump` en formato custom (binario comprimido)
+- Genera archivos con timestamp en `backend/backups/`
+- Verificación automática de integridad: valida que el archivo se creó y no está vacío
+- Timeout de 5 minutos por ejecución
+- Manejo de errores: rollback automático del archivo si algo falla
+- Script separado `restore_db.py` para restauración con `pg_restore`
+- Ejecución manual o programada vía cron/task scheduler
 
 ### 🔍 Índices
 
