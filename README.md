@@ -90,27 +90,77 @@ El proyecto aplica los siguientes índices vistos en la cátedra:
 ## 📁 Estructura del Proyecto
 
 ```
-stayhub/
-├── db/
-│   ├── schema/
-│   │   ├── 01_tablas.sql
-│   │   ├── 02_indices.sql
-│   │   └── 03_datos_seed.sql
-│   ├── transactions/
-│   │   ├── reserva_confirmar.sql
-│   │   └── pago_procesar.sql
-│   └── backups/
-│       ├── backup_full.sh
-│       └── restore.sh
-├── backend/
-│   ├── app/
-│   │   ├── main.py
-│   │   ├── routers/
-│   │   └── models/
-│   ├── requirements.txt
-│   └── Dockerfile
+Repositorio-Grupo-10/
+├── actividades.md
 ├── docker-compose.yml
-└── README.md
+├── LICENSE
+├── README.md
+├── backend/
+│   ├── alembic.ini
+│   ├── Dockerfile
+│   ├── guia-uv.md
+│   ├── pyproject.toml
+│   ├── README.md
+│   ├── alembic/
+│   │   ├── env.py
+│   │   ├── README
+│   │   ├── script.py.mako
+│   │   └── versions/
+│   │       └── 95648156dc74_initial_schema.py
+│   ├── app/
+│   │   ├── database.py
+│   │   ├── main.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── enums.py
+│   │   │   ├── propiedad.py
+│   │   │   ├── reseña.py
+│   │   │   ├── reserva.py
+│   │   │   └── usuario.py
+│   │   ├── repositories/
+│   │   │   ├── __init__.py
+│   │   │   ├── base.py
+│   │   │   ├── log_actividad.py
+│   │   │   ├── propiedad.py
+│   │   │   ├── resena.py
+│   │   │   ├── reserva.py
+│   │   │   └── usuario.py
+│   │   ├── routers/
+│   │   │   ├── __init__.py
+│   │   │   ├── logs.py
+│   │   │   ├── propiedades.py
+│   │   │   ├── reseñas.py
+│   │   │   ├── reservas.py
+│   │   │   └── usuarios.py
+│   │   ├── schemas/
+│   │   │   ├── __init__.py
+│   │   │   ├── log_actividad.py
+│   │   │   ├── propiedad.py
+│   │   │   ├── resena.py
+│   │   │   ├── reserva.py
+│   │   │   └── usuario.py
+│   │   └── utils/
+│   │       ├── __init__.py
+│   │       └── log_utils.py
+│   ├── backups/
+│   │   ├── backup_db.py
+│   │   └── restore_db.py
+│   ├── scripts/
+│   │   ├── migrate_orm.py
+│   │   ├── seed.py
+│   │   └── test_concurrencia.py
+├── db/
+│   └── schema/
+│       └── 04_seguridad_roles.sh
+└── frontend/
+    ├── app.js
+    ├── index.html
+    ├── login.html
+    ├── login.js
+    ├── README.md
+    ├── register.html
+    ├── register.js
+    └── styles.css
 ```
 
 ---
