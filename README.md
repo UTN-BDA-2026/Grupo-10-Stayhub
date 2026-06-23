@@ -70,16 +70,93 @@ El backend actúa únicamente como capa de exposición de la lógica implementad
 
 ### 🔍 Índices
 
-El proyecto aplica los siguientes índices vistos en la cátedra:
+La estrategia de indexación cubre los patrones de acceso reales del sistema: búsquedas por rango, lookups de igualdad, filtros combinados, consultas dentro de estructuras JSON/array y búsqueda espacial con PostGIS. Todos los índices están definidos en la migración Alembic `95648156dc74_initial_schema.py` y se aplican automáticamente con `alembic upgrade head`.
 
-- 1. B+Tree (por defecto): precio, fechas, rol, etc. — búsquedas por rango
-- 2. Hash (email): usuario.email, para igualdad exacta en login O(1)
-- 3. Compuesto: (ciudad, estado), (propiedad_id, estado) — filtros combinados
-- 4. GIN (JSONB): amenidades — búsqueda dentro de JSON
-- 5. GIN (array): tags — búsqueda dentro de arrays
-- 6. Constraint CHECK: validaciones a nivel de BD
-- 7. Constraint UNIQUE: email
-- 8. Constraint FK: integridad referencial en cascada
+#### B-Tree (por defecto) — rangos y ordenamiento
+
+| Índice                   | Tabla         | Columnas                          | Uso                                            |
+| ------------------------ | ------------- | --------------------------------- | ---------------------------------------------- |
+| `idx_propiedades_precio` | `propiedades` | `precio`                          | Filtros por rango de precio                    |
+| `idx_propiedades_tipo`   | `propiedades` | `tipo`                            | Filtro por tipo de alojamiento                 |
+| `idx_reservas_fechas`    | `reservas`    | `fecha_checkin`, `fecha_checkout` | Búsqueda de disponibilidad por rango de fechas |
+| `idx_reservas_estado`    | `reservas`    | `estado`                          | Filtro por estado de reserva                   |
+| `idx_reservas_creado_en` | `reservas`    | `creado_en`                       | Ordenamiento cronológico                       |
+| `ix_usuarios_rol`        | `usuarios`    | `rol`                             | Filtro por rol (huesped / propietario / admin) |
+| `ix_propiedades_ciudad`  | `propiedades` | `ciudad`                          | Filtro por ciudad                              |
+
+#### Hash — igualdad exacta O(1)
+
+| Índice                    | Tabla      | Columnas | Uso                                                     |
+| ------------------------- | ---------- | -------- | ------------------------------------------------------- |
+| `idx_usuarios_email_hash` | `usuarios` | `email`  | Login: lookup por email exacto, sin necesidad de rangos |
+
+> Hash es más eficiente que B-Tree para búsquedas de igualdad pura. Se eligió aquí porque el email nunca se consulta con `LIKE` ni con rangos.
+
+#### Compuestos — filtros combinados
+
+| Índice                          | Tabla         | Columnas                  | Uso                                                     |
+| ------------------------------- | ------------- | ------------------------- | ------------------------------------------------------- |
+| `idx_propiedades_ciudad_precio` | `propiedades` | `ciudad`, `precio`        | Búsqueda de propiedades por ciudad con filtro de precio |
+| `ix_ciudad_estado`              | `propiedades` | `ciudad`, `estado`        | Filtro combinado ciudad + estado de publicación         |
+| `idx_reservas_estado_checkin`   | `reservas`    | `estado`, `fecha_checkin` | Consultas de reservas activas ordenadas por fecha       |
+
+#### Parciales — subconjuntos de alta frecuencia
+
+| Índice                        | Tabla         | Condición                                     | Uso                                                                                    |
+| ----------------------------- | ------------- | --------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `idx_propiedades_disponibles` | `propiedades` | `WHERE estado = 'disponible'`                 | Catálogo público: solo indexa las propiedades activas, reduciendo el tamaño del índice |
+| `idx_reservas_activas`        | `reservas`    | `WHERE estado IN ('pendiente', 'confirmada')` | Verificación de disponibilidad: excluye reservas canceladas/completadas del índice     |
+
+> Los índices parciales son más livianos que los totales porque solo indexan las filas relevantes. Para tablas con alto volumen de cancelaciones o propiedades pausadas, el beneficio es significativo.
+
+#### Cubriente — evita acceso a tabla (Index-Only Scan)
+
+| Índice                      | Tabla         | Columnas indexadas | Columnas incluidas (INCLUDE) |
+| --------------------------- | ------------- | ------------------ | ---------------------------- |
+| `idx_propiedades_cubriente` | `propiedades` | `id`, `precio`     | `nombre`, `rating`, `tipo`   |
+
+> El índice cubriente permite que el listado de propiedades (`SELECT id, nombre, precio, rating, tipo`) se resuelva sin tocar la tabla principal. PostgreSQL lo usa en un Index-Only Scan cuando las columnas del `SELECT` están todas en el índice.
+
+#### Funcional — normalización en el índice
+
+| Índice                     | Tabla      | Expresión      | Uso                                                                                 |
+| -------------------------- | ---------- | -------------- | ----------------------------------------------------------------------------------- |
+| `idx_usuarios_email_lower` | `usuarios` | `lower(email)` | Login case-insensitive: `WHERE lower(email) = lower($1)` usa el índice directamente |
+
+#### GIN — estructuras JSONB, arrays y búsqueda de texto
+
+| Índice                           | Tabla         | Columna                                           | Uso                                                              |
+| -------------------------------- | ------------- | ------------------------------------------------- | ---------------------------------------------------------------- |
+| `idx_propiedades_amenidades_gin` | `propiedades` | `amenidades` (JSONB)                              | Búsqueda dentro del JSON: `amenidades @> '{"wifi": true}'`       |
+| `idx_propiedades_tags_gin`       | `propiedades` | `tags` (array)                                    | Búsqueda dentro del array: `tags @> ARRAY['pet-friendly']`       |
+| `idx_propiedades_fulltext_gin`   | `propiedades` | `to_tsvector('spanish', nombre \|\| descripcion)` | Búsqueda de texto completo en español sobre nombre y descripción |
+
+> El índice de texto completo usa `pg_trgm` y `to_tsvector` con diccionario `spanish`. Permite consultas como `WHERE to_tsvector('spanish', nombre \|\| descripcion) @@ to_tsquery('spanish', 'cabaña & Mendoza')` sin sequential scan.
+
+#### GiST — búsqueda espacial (PostGIS)
+
+| Índice                           | Tabla         | Columna                           | Uso                                                                 |
+| -------------------------------- | ------------- | --------------------------------- | ------------------------------------------------------------------- |
+| `idx_propiedades_ubicacion_gist` | `propiedades` | `ubicacion` (GEOMETRY Point 4326) | Búsqueda por proximidad geográfica con `ST_DWithin` y `ST_Distance` |
+
+```sql
+-- Ejemplo: propiedades dentro de 5 km de San Rafael, Mendoza
+SELECT nombre, ST_Distance(ubicacion, ST_MakePoint(-68.3391, -34.6177)::geography) AS metros
+FROM propiedades
+WHERE ST_DWithin(ubicacion::geography, ST_MakePoint(-68.3391, -34.6177)::geography, 5000)
+ORDER BY metros;
+```
+
+#### Constraints como índices implícitos
+
+PostgreSQL crea automáticamente un índice B-Tree por cada constraint `UNIQUE` y `PRIMARY KEY` declarado en el schema:
+
+| Constraint               | Tabla                                | Tipo                                            |
+| ------------------------ | ------------------------------------ | ----------------------------------------------- |
+| `PRIMARY KEY`            | todas las tablas                     | B-Tree en `id`                                  |
+| `UNIQUE (email)`         | `usuarios`                           | B-Tree en `email`                               |
+| `UNIQUE (reserva_id)`    | `reseñas`                            | B-Tree en `reserva_id` (una reseña por reserva) |
+| `FOREIGN KEY` en cascada | `propiedades`, `reservas`, `reseñas` | Integridad referencial                          |
 
 ### 💳 Transacciones
 
