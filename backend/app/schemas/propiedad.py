@@ -1,9 +1,6 @@
 from datetime import datetime
-
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-
 from app.models.enums import EstadoPropiedad
-
 
 class PropiedadBase(BaseModel):
     propietario_id: int
@@ -20,17 +17,16 @@ class PropiedadBase(BaseModel):
     @field_validator('tipo')
     @classmethod
     def normalizar_tipo(cls, v: str) -> str:
+        TIPOS_VALIDOS = {'departamento', 'casa', 'cabaña', 'habitacion'}
         if v is not None:
             v = v.lower().strip()
-            if v == "cabaña":
-                return "cabana"
+            if v not in TIPOS_VALIDOS:
+                raise ValueError(f"Tipo inválido '{v}'. Valores permitidos: {sorted(TIPOS_VALIDOS)}")
         return v
 
 
 class PropiedadCreate(PropiedadBase):
     pass
-
-
 
 class PropiedadResponse(PropiedadBase):
     id: int
