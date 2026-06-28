@@ -1,5 +1,8 @@
-
+from typing import Optional
 from sqlalchemy import and_, or_
+
+from app.models.propiedad import Propiedad
+from app.repositories.base import BaseRepository
 
 class PropiedadRepository(BaseRepository[Propiedad]):
     
