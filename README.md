@@ -62,11 +62,11 @@ El backend actúa únicamente como capa de exposición de la lógica implementad
 
 - Backup completo con `pg_dump` en formato custom (binario comprimido)
 - Genera archivos con timestamp en `backend/backups/`
+- Rotación automática: un script elimina los backups con más de 7 días de antigüedad (`backup_auto.py`)
 - Verificación automática de integridad: valida que el archivo se creó y no está vacío
-- Timeout de 5 minutos por ejecución
 - Manejo de errores: rollback automático del archivo si algo falla
 - Script separado `restore_db.py` para restauración con `pg_restore`
-- Ejecución manual o programada vía cron/task scheduler
+- Ejecución automática programada mediante `cron` a las 02:00 AM todos los días
 
 ### 🔍 Índices
 
@@ -231,12 +231,15 @@ Repositorio-Grupo-10/
 │   │       ├── __init__.py
 │   │       └── log_utils.py
 │   ├── backups/
+│   │   ├── backup_auto.py
 │   │   ├── backup_db.py
 │   │   └── restore_db.py
 │   ├── scripts/
+│   │   ├── consultas_demostracion.sql
 │   │   ├── migrate_orm.py
-│   │   ├── seed.py
-│   │   └── test_concurrencia.py
+│   │   ├── seed_db.py
+│   │   ├── test_concurrencia.py
+│   │   └── test_endpoints.py
 ├── db/
 │   └── schema/
 │       └── 04_seguridad_roles.sh
@@ -315,12 +318,18 @@ MONGO_DB=
 MONGO_PORT=
 MONGO_USER=
 MONGO_PASSWORD=
-MONGODB_URL=
 ```
 
 ---
 
 ## 🔬 Consultas de Demostración
+
+Se ha desarrollado el script `backend/scripts/consultas_demostracion.sql` con 10 consultas de nivel avanzado listas para ejecutar durante la defensa. Incluyen:
+- Búsqueda Geoespacial con `ST_DWithin` (PostGIS)
+- Búsqueda en JSONB con índices GIN
+- Funciones de Ventana (`RANK() OVER`)
+- Expresiones Comunes de Tabla (`WITH` CTEs)
+- Bloqueos transaccionales para concurrencia (`FOR UPDATE`)
 
 Cada tema cuenta con consultas documentadas que incluyen `EXPLAIN ANALYZE` antes y después de aplicar el índice correspondiente, mostrando la mejora de rendimiento.
 
