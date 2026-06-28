@@ -158,6 +158,14 @@ PostgreSQL crea automáticamente un índice B-Tree por cada constraint `UNIQUE` 
 | `UNIQUE (reserva_id)`    | `reseñas`                            | B-Tree en `reserva_id` (una reseña por reserva) |
 | `FOREIGN KEY` en cascada | `propiedades`, `reservas`, `reseñas` | Integridad referencial                          |
 
+### 🛡️ Seguridad y Auditoría
+
+- **Separación de Privilegios en PostgreSQL**: Implementación del rol `API_DB_USER` restringido exclusivamente a operaciones DML (`SELECT`, `INSERT`, `UPDATE`, `DELETE`), revocando accesos DDL para mitigar el impacto de posibles intrusiones.
+- **Auditoría Asíncrona en MongoDB**: Registro detallado de operaciones críticas (creación de usuarios, reservas, etc.) incluyendo contexto, utilizando `BackgroundTasks` para asegurar la trazabilidad sin penalizar el rendimiento transaccional principal.
+- **Autenticación en NoSQL**: Blindaje de la base de datos MongoDB exigiendo credenciales de acceso para el registro de auditoría.
+- **Gestión Segura de Secretos**: Eliminación de credenciales hardcodeadas (como en los scripts de inicialización SQL) mediante la inyección dinámica desde variables de entorno (`.env`).
+- **Hardening de Aplicación**: Encriptación de contraseñas utilizando algoritmo fuerte nativo (`bcrypt`), validaciones estrictas de entrada (Pydantic) y políticas restrictivas de CORS.
+
 ### 💳 Transacciones
 
 - Control de concurrencia en reservas: prevención de **doble booking** mediante niveles de aislamiento `SERIALIZABLE`
@@ -288,12 +296,26 @@ cp .env.example .env
 El archivo `.env.example` tiene la siguiente estructura:
 
 ```env
+# PostgreSQL
 POSTGRES_USER=
 POSTGRES_PASSWORD=
 POSTGRES_DB=
 POSTGRES_PORT=
+
+# pgAdmin
 PGADMIN_EMAIL=
 PGADMIN_PASSWORD=
+
+# Credenciales seguras para la API
+API_DB_USER=
+API_DB_PASSWORD=
+
+# MongoDB
+MONGO_DB=
+MONGO_PORT=
+MONGO_USER=
+MONGO_PASSWORD=
+MONGODB_URL=
 ```
 
 ---
