@@ -6,13 +6,13 @@
 
 ## 👥 Integrantes grupo 10
 
-| Nombre                       |
-| ---------------------------- |
-| Moya, Carlos Esteban         |
-| Iriarte Lopez, Ana Valentina |
-| Parada, Solange Yanina       |
-| Vulcano, Candela Nair        |
-| Reali, Tomas                 |
+| Nombre                            |
+| ----------------------------------|
+| Moya, Carlos Esteban              |
+| Iriarte Lopez, Ana Valentina      |
+| Parada Hernandez, Yianela Solange |
+| Vulcano, Candela Nair             |
+| Reali, Tomas                      |
 
 ---
 
