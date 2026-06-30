@@ -168,10 +168,11 @@ PostgreSQL crea automáticamente un índice B-Tree por cada constraint `UNIQUE` 
 
 ### 💳 Transacciones
 
-- Control de concurrencia en reservas: prevención de **doble booking** mediante niveles de aislamiento `SERIALIZABLE`
-- Bloqueos explícitos con `SELECT FOR UPDATE` sobre disponibilidad
-- Manejo de rollback automático ante fallos de pago o validación
-- Demostración de anomalías (dirty read, phantom read) y cómo los niveles de aislamiento las previenen
+- **Control de concurrencia (prevención de doble booking)**: implementado en `ReservaRepository.crear_reserva_segura()` mediante **bloqueo pesimista de filas** con `SELECT ... FOR UPDATE` (`with_for_update()` en SQLAlchemy) sobre la propiedad antes de verificar disponibilidad. Esto garantiza que ninguna otra transacción pueda leer/modificar esa propiedad hasta que la primera haga commit o rollback.
+- **Nivel de aislamiento**: se utiliza el nivel por defecto de PostgreSQL (`READ COMMITTED`). El `FOR UPDATE` es suficiente para evitar el doble booking sin necesidad de `SERIALIZABLE`, ya que el conflicto se previene bloqueando la fila específica en disputa en lugar de aislar toda la transacción.
+- **Verificación de solapamiento de fechas**: dentro de la sección bloqueada, se consultan las reservas activas (`pendiente`/`confirmada`) de la propiedad y se valida que el rango `[fecha_checkin, fecha_checkout)` de la nueva reserva no se superponga con ninguna existente.
+- **Atomicidad**: la verificación de disponibilidad y la creación de la reserva ocurren dentro de la misma transacción/sesión de SQLAlchemy. El repositorio no hace commit explícito (queda a cargo del router), de modo que si algo fallara antes del commit, ningún cambio queda persistido.
+- **Demostración**: `backend/scripts/test_concurrencia.py` dispara dos requests `POST /reservas/` simultáneos (con threads) para la misma propiedad y fechas, y verifica automáticamente que solo una sea aceptada (201) y la otra rechazada (400) — confirmando que el locking previene la condición de carrera en la práctica.
 
 ---
 
